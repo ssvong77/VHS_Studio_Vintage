@@ -1,0 +1,2259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VHS Video Effects - Estampado de Efectos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --vhs-green: #00ff00;
+            --vhs-red: #ff0040;
+            --vhs-blue: #0080ff;
+            --vhs-yellow: #ffcc00;
+            --vhs-purple: #cc66ff;
+            --bg-dark: #0a0a0a;
+            --panel-bg: #1a1a1a;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+        }
+
+        .app-header {
+            background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+            border-bottom: 2px solid #333;
+            padding: 1rem 0;
+        }
+
+        .app-title {
+            color: var(--vhs-green);
+            text-shadow: 2px 2px 0px rgba(255, 0, 0, 0.5),
+                        -2px -2px 0px rgba(0, 0, 255, 0.5);
+            letter-spacing: 3px;
+            font-weight: bold;
+        }
+
+        .video-wrapper {
+            position: relative;
+            background: #000;
+            border: 3px solid #333;
+            border-radius: 8px;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.1);
+        }
+
+        .video-wrapper video,
+        .video-wrapper canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .upload-area {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.85);
+            border: 3px dashed #444;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            border-color: var(--vhs-green);
+            background: rgba(0, 255, 0, 0.05);
+        }
+
+        .upload-area.hidden { display: none; }
+
+        .upload-icon {
+            font-size: 4rem;
+            color: var(--vhs-green);
+            margin-bottom: 1rem;
+        }
+
+        .vhs-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .scanlines-overlay {
+            background: linear-gradient(to bottom,
+                rgba(255,255,255,0) 0%, rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.3) 100%);
+            background-size: 100% 4px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .scanlines-overlay.active {
+            opacity: 1;
+            animation: scanlineScroll 8s linear infinite;
+        }
+
+        @keyframes scanlineScroll {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 100px; }
+        }
+
+        .noise-overlay {
+            opacity: 0;
+            transition: opacity 0.3s;
+            mix-blend-mode: overlay;
+        }
+
+        .noise-overlay.active {
+            opacity: 0.4;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            animation: noiseFlicker 0.1s steps(2) infinite;
+        }
+
+        @keyframes noiseFlicker {
+            0% { transform: translate(0, 0); }
+            50% { transform: translate(-2px, 2px); }
+            100% { transform: translate(2px, -2px); }
+        }
+
+        .tracking-shake-overlay {
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 100%; height: 60px;
+            background: repeating-linear-gradient(0deg,
+                rgba(255,255,255,0.9) 0px, rgba(255,255,255,0.9) 2px,
+                rgba(0,0,0,0.9) 2px, rgba(0,0,0,0.9) 4px,
+                rgba(255,255,255,0.7) 4px, rgba(255,255,255,0.7) 6px,
+                rgba(0,0,0,0.8) 6px, rgba(0,0,0,0.8) 8px);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 6;
+            pointer-events: none;
+        }
+
+        .tracking-shake-overlay.active {
+            opacity: 0.85;
+            animation: trackingShake 0.08s infinite;
+        }
+
+        @keyframes trackingShake {
+            0% { transform: translateY(0) scaleY(1); }
+            25% { transform: translateY(-3px) scaleY(1.05); }
+            50% { transform: translateY(2px) scaleY(0.95); }
+            75% { transform: translateY(-1px) scaleY(1.02); }
+            100% { transform: translateY(0) scaleY(1); }
+        }
+
+        .rolling-bar-overlay {
+            position: absolute;
+            left: 0;
+            width: 100%; height: 80px;
+            background: linear-gradient(to bottom,
+                rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 20%,
+                rgba(0,0,0,0.6) 40%, rgba(255,255,255,0.4) 60%,
+                rgba(0,0,0,0.5) 80%, rgba(255,255,255,0) 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 6;
+            pointer-events: none;
+            animation: rollingBarMove 8s linear infinite;
+        }
+
+        .rolling-bar-overlay.active { opacity: 0.7; }
+
+        @keyframes rollingBarMove {
+            0% { top: -80px; }
+            100% { top: 100%; }
+        }
+
+        .vignette-overlay {
+            box-shadow: inset 0 0 150px rgba(0,0,0,0.9);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .vignette-overlay.active { opacity: 1; }
+
+        .vhs-timestamp {
+            position: absolute;
+            bottom: 20px; right: 20px;
+            font-size: 1.5rem;
+            color: #fff;
+            text-shadow: 2px 2px 0 #000, -1px -1px 0 #000;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            letter-spacing: 2px;
+            z-index: 7;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .vhs-timestamp.active {
+            opacity: 1;
+            animation: timestampFlicker 3s infinite;
+        }
+
+        @keyframes timestampFlicker {
+            0%, 95%, 100% { opacity: 1; }
+            96% { opacity: 0.3; }
+            97% { opacity: 1; }
+            98% { opacity: 0.5; }
+        }
+
+        .rec-indicator {
+            position: absolute;
+            top: 20px; left: 20px;
+            color: #ff0000;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-shadow: 2px 2px 0 #000;
+            z-index: 7;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .rec-indicator.active {
+            opacity: 1;
+            animation: recBlink 1s infinite;
+        }
+
+        .rec-indicator::before {
+            content: "●";
+            margin-right: 5px;
+            font-size: 1.5rem;
+        }
+
+        @keyframes recBlink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        .play-indicator {
+            position: absolute;
+            top: 20px; right: 20px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 1rem;
+            text-shadow: 2px 2px 0 #000;
+            z-index: 7;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .play-indicator.active { opacity: 1; }
+
+        .chromatic-aberration {
+            filter: drop-shadow(-2px 0 0 rgba(255, 0, 0, 0.7))
+                    drop-shadow(2px 0 0 rgba(0, 255, 255, 0.7));
+        }
+
+        .shake-effect { animation: videoShake 0.15s infinite; }
+
+        @keyframes videoShake {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(-1px, 1px); }
+            50% { transform: translate(1px, -1px); }
+            75% { transform: translate(-1px, -1px); }
+        }
+
+        .color-fade {
+            filter: saturate(0.5) sepia(0.3) contrast(1.1) brightness(0.95);
+        }
+
+        .glitch-effect { animation: glitchEffect 3s infinite; }
+
+        @keyframes glitchEffect {
+            0%, 90%, 100% { clip-path: inset(0 0 0 0); transform: translate(0, 0); }
+            92% { clip-path: inset(20% 0 60% 0); transform: translate(-5px, 0); }
+            94% { clip-path: inset(50% 0 20% 0); transform: translate(5px, 0); }
+            96% { clip-path: inset(10% 0 70% 0); transform: translate(-3px, 0); }
+        }
+
+        .control-panel {
+            background: var(--panel-bg);
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .panel-title {
+            color: var(--vhs-green);
+            border-bottom: 1px solid #333;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .effect-toggle {
+            background: #2a2a2a;
+            border: 2px solid #444;
+            color: #aaa;
+            padding: 0.6rem 1rem;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            width: 100%;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .effect-toggle:hover { border-color: #666; color: #fff; }
+
+        .effect-toggle.active {
+            background: linear-gradient(180deg, #00aa00 0%, #005500 100%);
+            border-color: var(--vhs-green);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        .effect-toggle .status-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: #555;
+            transition: all 0.2s;
+        }
+
+        .effect-toggle.active .status-dot {
+            background: var(--vhs-green);
+            box-shadow: 0 0 8px var(--vhs-green);
+        }
+
+        .form-range::-webkit-slider-thumb { background: var(--vhs-green); }
+        .form-range::-moz-range-thumb { background: var(--vhs-green); }
+
+        .intensity-label {
+            color: var(--vhs-green);
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .action-btn {
+            background: linear-gradient(180deg, #444 0%, #222 100%);
+            border: 2px solid #555;
+            color: #fff;
+            padding: 0.7rem 1rem;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+
+        .action-btn:hover {
+            background: linear-gradient(180deg, #555 0%, #333 100%);
+            border-color: #777;
+        }
+
+        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .action-btn.btn-export {
+            background: linear-gradient(180deg, #aa0000 0%, #550000 100%);
+            border-color: var(--vhs-red);
+        }
+
+        .action-btn.btn-export:hover {
+            background: linear-gradient(180deg, #cc0000 0%, #770000 100%);
+        }
+
+        .recording-banner {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            background: rgba(255, 0, 0, 0.9);
+            color: #fff;
+            text-align: center;
+            padding: 0.5rem;
+            font-weight: bold;
+            z-index: 20;
+            display: none;
+        }
+
+        .recording-banner.active {
+            display: block;
+            animation: recBannerBlink 1s infinite;
+        }
+
+        @keyframes recBannerBlink {
+            0%, 50% { background: rgba(255, 0, 0, 0.9); }
+            51%, 100% { background: rgba(200, 0, 0, 0.7); }
+        }
+
+        .preset-btn {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: #ccc;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            font-family: 'Courier New', monospace;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            background: #3a3a3a;
+            border-color: var(--vhs-green);
+            color: var(--vhs-green);
+        }
+
+        /* ===== NUEVO: PANEL DE NAVEGACIÓN Y TIMELINE ===== */
+        .navigation-panel {
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+            border: 2px solid var(--vhs-blue);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .navigation-panel-title {
+            color: var(--vhs-blue);
+            font-weight: bold;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .time-current {
+            color: var(--vhs-blue);
+            font-weight: bold;
+        }
+
+        .time-total {
+            color: #888;
+        }
+
+        /* Timeline */
+        .timeline-container {
+            position: relative;
+            height: 40px;
+            background: #1a1a1a;
+            border: 2px solid #444;
+            border-radius: 4px;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .timeline-range {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            background: rgba(0, 255, 0, 0.2);
+            border-left: 2px solid var(--vhs-green);
+            border-right: 2px solid var(--vhs-green);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .timeline-progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: rgba(0, 128, 255, 0.3);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .timeline-cursor {
+            position: absolute;
+            top: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--vhs-blue);
+            box-shadow: 0 0 8px var(--vhs-blue);
+            pointer-events: none;
+            z-index: 3;
+            transition: left 0.1s linear;
+        }
+
+        .timeline-start-marker {
+            position: absolute;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--vhs-yellow);
+            box-shadow: 0 0 10px var(--vhs-yellow);
+            cursor: ew-resize;
+            z-index: 4;
+        }
+
+        .timeline-start-marker::before {
+            content: "▼";
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--vhs-yellow);
+            font-size: 12px;
+        }
+
+        /* Botones de navegación */
+        .nav-buttons {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.4rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .nav-btn {
+            background: #2a2a2a;
+            border: 2px solid #444;
+            color: #ccc;
+            padding: 0.5rem 0.2rem;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 0.75rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 4px;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--vhs-blue);
+            color: var(--vhs-blue);
+            background: #3a3a3a;
+        }
+
+        .nav-btn:active {
+            transform: scale(0.95);
+        }
+
+        .nav-btn i {
+            display: block;
+            font-size: 1rem;
+            margin-bottom: 2px;
+        }
+
+        /* Punto de inicio */
+        .start-point-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .start-point-input {
+            background: #1a1a1a;
+            border: 2px solid #444;
+            color: var(--vhs-yellow);
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            padding: 0.4rem 0.6rem;
+            width: 100px;
+            text-align: center;
+            border-radius: 4px;
+        }
+
+        .start-point-input:focus {
+            outline: none;
+            border-color: var(--vhs-yellow);
+            box-shadow: 0 0 8px rgba(255, 204, 0, 0.3);
+        }
+
+        .start-point-btn {
+            background: linear-gradient(180deg, #aa8800 0%, #554400 100%);
+            border: 2px solid var(--vhs-yellow);
+            color: #fff;
+            padding: 0.4rem 0.8rem;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        .start-point-btn:hover {
+            background: linear-gradient(180deg, #ccaa00 0%, #776600 100%);
+        }
+
+        .start-point-label {
+            color: #aaa;
+            font-size: 0.8rem;
+            margin: 0;
+        }
+
+        .export-range-info {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 0.5rem 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+        }
+
+        .export-range-info .range-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .export-range-info .range-label {
+            color: #888;
+        }
+
+        .export-range-info .range-value {
+            color: var(--vhs-green);
+            font-weight: bold;
+        }
+
+        /* ===== PANEL DE VOLUMEN ===== */
+        .volume-panel {
+            background: #222;
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .volume-panel-title {
+            color: var(--vhs-blue);
+            font-weight: bold;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .volume-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .volume-row label {
+            color: #aaa;
+            font-size: 0.8rem;
+            min-width: 90px;
+            margin: 0;
+        }
+
+        .volume-row .form-range { flex: 1; }
+
+        .volume-row .volume-value {
+            color: var(--vhs-blue);
+            font-weight: bold;
+            font-size: 0.85rem;
+            min-width: 45px;
+            text-align: right;
+        }
+
+        .volume-row .form-range::-webkit-slider-thumb { background: var(--vhs-blue); }
+        .volume-row .form-range::-moz-range-thumb { background: var(--vhs-blue); }
+
+        .volume-mute-btn {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: #aaa;
+            padding: 0.3rem 0.6rem;
+            font-size: 0.75rem;
+            font-family: 'Courier New', monospace;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .volume-mute-btn:hover {
+            border-color: var(--vhs-blue);
+            color: var(--vhs-blue);
+        }
+
+        .volume-mute-btn.muted {
+            background: #aa0000;
+            border-color: var(--vhs-red);
+            color: #fff;
+        }
+
+        /* ===== PANEL DE FINALIZACIÓN PROFESIONAL ===== */
+        .pro-panel {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 2px solid var(--vhs-purple);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pro-panel::before {
+            content: "PRO";
+            position: absolute;
+            top: 5px; right: 10px;
+            background: var(--vhs-purple);
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 3px;
+            letter-spacing: 1px;
+        }
+
+        .pro-panel-title {
+            color: var(--vhs-purple);
+            font-weight: bold;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .fade-toggle {
+            background: #2a2a2a;
+            border: 2px solid #444;
+            color: #aaa;
+            padding: 0.5rem 0.8rem;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            width: 100%;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 4px;
+        }
+
+        .fade-toggle:hover { border-color: #666; color: #fff; }
+
+        .fade-toggle.active {
+            background: linear-gradient(180deg, #7733cc 0%, #441188 100%);
+            border-color: var(--vhs-purple);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(204, 102, 255, 0.3);
+        }
+
+        .fade-toggle .status-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: #555;
+            transition: all 0.2s;
+        }
+
+        .fade-toggle.active .status-dot {
+            background: var(--vhs-purple);
+            box-shadow: 0 0 8px var(--vhs-purple);
+        }
+
+        .fade-options {
+            display: none;
+            margin-top: 0.5rem;
+            padding: 0.75rem;
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+            border: 1px solid #333;
+        }
+
+        .fade-options.show { display: block; }
+
+        .fade-duration-btns {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.4rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .fade-duration-btn {
+            background: #2a2a2a;
+            border: 2px solid #444;
+            color: #ccc;
+            padding: 0.4rem 0.2rem;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 0.75rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 4px;
+        }
+
+        .fade-duration-btn:hover {
+            border-color: var(--vhs-purple);
+            color: var(--vhs-purple);
+        }
+
+        .fade-duration-btn.active {
+            background: linear-gradient(180deg, #7733cc 0%, #441188 100%);
+            border-color: var(--vhs-purple);
+            color: #fff;
+        }
+
+        .fade-label {
+            color: #aaa;
+            font-size: 0.75rem;
+            margin-bottom: 0.3rem;
+            display: block;
+        }
+
+        /* ===== PANEL DE DURACIÓN ===== */
+        .duration-panel {
+            background: #222;
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .duration-panel-title {
+            color: var(--vhs-yellow);
+            font-weight: bold;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .duration-presets {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .duration-preset-btn {
+            background: #2a2a2a;
+            border: 2px solid #444;
+            color: #ccc;
+            padding: 0.5rem 0.3rem;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 0.8rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 4px;
+        }
+
+        .duration-preset-btn:hover {
+            border-color: var(--vhs-yellow);
+            color: var(--vhs-yellow);
+        }
+
+        .duration-preset-btn.active {
+            background: linear-gradient(180deg, #aa8800 0%, #554400 100%);
+            border-color: var(--vhs-yellow);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
+        }
+
+        .duration-preset-btn.whatsapp { border-color: #25D366; }
+
+        .duration-preset-btn.whatsapp.active {
+            background: linear-gradient(180deg, #25D366 0%, #128C7E 100%);
+            border-color: #25D366;
+        }
+
+        .duration-preset-btn small {
+            display: block;
+            font-size: 0.65rem;
+            color: #888;
+            margin-top: 2px;
+            font-weight: normal;
+        }
+
+        .duration-preset-btn.active small { color: rgba(255,255,255,0.8); }
+
+        .duration-custom {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .duration-custom input {
+            background: #1a1a1a;
+            border: 2px solid #444;
+            color: var(--vhs-yellow);
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            padding: 0.4rem 0.6rem;
+            width: 80px;
+            text-align: center;
+            border-radius: 4px;
+        }
+
+        .duration-custom input:focus {
+            outline: none;
+            border-color: var(--vhs-yellow);
+            box-shadow: 0 0 8px rgba(255, 204, 0, 0.3);
+        }
+
+        .duration-custom label {
+            color: #aaa;
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        .video-info-bar {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 0.5rem 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .video-info-bar .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .video-info-bar .info-label { color: #888; }
+        .video-info-bar .info-value { color: var(--vhs-green); font-weight: bold; }
+
+        .duration-warning {
+            background: rgba(255, 100, 0, 0.15);
+            border: 1px solid #ff6400;
+            border-radius: 4px;
+            padding: 0.5rem 0.75rem;
+            color: #ffaa55;
+            font-size: 0.75rem;
+            margin-bottom: 0.75rem;
+            display: none;
+        }
+
+        .duration-warning.show { display: block; }
+        .duration-warning i { margin-right: 0.3rem; }
+
+        .export-summary {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 0.6rem 0.75rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .export-summary .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+        }
+
+        .export-summary .summary-row:last-child { margin-bottom: 0; }
+        .export-summary .summary-label { color: #888; }
+        .export-summary .summary-value { color: var(--vhs-yellow); font-weight: bold; }
+
+        .info-text {
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 991px) {
+            .control-panel { margin-top: 1rem; }
+            .duration-presets { grid-template-columns: repeat(2, 1fr); }
+            .fade-duration-btns { grid-template-columns: repeat(2, 1fr); }
+            .nav-buttons { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1a1a1a; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--vhs-green); }
+    </style>
+</head>
+<body>
+
+    <header class="app-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="app-title h3 mb-0">
+                    <i class="bi bi-camera-video-fill"></i> VHS EFFECTS STUDIO
+                </h1>
+                <span class="text-muted d-none d-md-block small">
+                    Estampado de efectos sobre video
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container my-4">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="video-wrapper" id="videoWrapper">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="text-center p-4">
+                            <div class="upload-icon">
+                                <i class="bi bi-cloud-arrow-up"></i>
+                            </div>
+                            <h4 class="text-white mb-2">CARGA TU VIDEO</h4>
+                            <p class="text-muted mb-3">
+                                Arrastra un archivo aquí o haz clic para seleccionar
+                            </p>
+                            <small class="info-text">
+                                Formatos soportados: MP4, WebM, MOV, AVI
+                            </small>
+                            <input type="file" id="videoInput" accept="video/*" hidden>
+                        </div>
+                    </div>
+
+                    <div class="recording-banner" id="recordingBanner">
+                        <i class="bi bi-record-circle"></i> GRABANDO EXPORTACIÓN...
+                    </div>
+
+                    <video id="videoPlayer" crossorigin="anonymous" playsinline></video>
+
+                    <div class="vhs-overlay scanlines-overlay" id="scanlinesOverlay"></div>
+                    <div class="vhs-overlay noise-overlay" id="noiseOverlay"></div>
+                    <div class="vhs-overlay vignette-overlay" id="vignetteOverlay"></div>
+                    <div class="tracking-shake-overlay" id="trackingShakeOverlay"></div>
+                    <div class="rolling-bar-overlay" id="rollingBarOverlay"></div>
+                    <div class="vhs-timestamp" id="timestampOverlay">PLAY  00:00:00</div>
+                    <div class="rec-indicator" id="recIndicator">REC</div>
+                    <div class="play-indicator" id="playIndicator">▶ PLAY</div>
+                </div>
+
+                <!-- ===== NUEVO: PANEL DE NAVEGACIÓN ===== -->
+                <div class="navigation-panel" id="navigationPanel" style="display: none;">
+                    <div class="navigation-panel-title">
+                        <i class="bi bi-scissors"></i> NAVEGACIÓN Y PUNTO DE INICIO
+                    </div>
+
+                    <!-- Time display -->
+                    <div class="time-display">
+                        <span class="time-current" id="timeCurrent">0:00</span>
+                        <span class="time-total" id="timeTotal">/ 0:00</span>
+                    </div>
+
+                    <!-- Timeline -->
+                    <div class="timeline-container" id="timelineContainer">
+                        <div class="timeline-range" id="timelineRange"></div>
+                        <div class="timeline-progress" id="timelineProgress"></div>
+                        <div class="timeline-cursor" id="timelineCursor"></div>
+                        <div class="timeline-start-marker" id="timelineStartMarker"></div>
+                    </div>
+
+                    <!-- Navigation buttons -->
+                    <div class="nav-buttons">
+                        <button class="nav-btn" data-skip="-30">
+                            <i class="bi bi-skip-backward-fill"></i>
+                            -30s
+                        </button>
+                        <button class="nav-btn" data-skip="-10">
+                            <i class="bi bi-skip-backward"></i>
+                            -10s
+                        </button>
+                        <button class="nav-btn" data-skip="-5">
+                            <i class="bi bi-caret-left-fill"></i>
+                            -5s
+                        </button>
+                        <button class="nav-btn" data-skip="5">
+                            <i class="bi bi-caret-right-fill"></i>
+                            +5s
+                        </button>
+                        <button class="nav-btn" data-skip="10">
+                            <i class="bi bi-skip-forward"></i>
+                            +10s
+                        </button>
+                        <button class="nav-btn" data-skip="30">
+                            <i class="bi bi-skip-forward-fill"></i>
+                            +30s
+                        </button>
+                        <button class="nav-btn" id="btnMarkStart" style="background: linear-gradient(180deg, #aa8800 0%, #554400 100%); border-color: var(--vhs-yellow); color: #fff;">
+                            <i class="bi bi-flag-fill"></i>
+                            INICIO
+                        </button>
+                    </div>
+
+                    <!-- Start point controls -->
+                    <div class="start-point-controls">
+                        <label class="start-point-label">
+                            <i class="bi bi-flag-fill" style="color: var(--vhs-yellow);"></i> Punto de inicio:
+                        </label>
+                        <input type="number" class="start-point-input" id="startPointInput" min="0" step="1" value="0" placeholder="0">
+                        <span style="color: #888; font-size: 0.8rem;">segundos</span>
+                        <button class="start-point-btn" id="btnSetStart">
+                            <i class="bi bi-check-circle"></i> Aplicar
+                        </button>
+                    </div>
+
+                    <!-- Export range info -->
+                    <div class="export-range-info">
+                        <div class="range-item">
+                            <span class="range-label">Desde:</span>
+                            <span class="range-value" id="rangeStart">0:00</span>
+                        </div>
+                        <div class="range-item">
+                            <span class="range-label">Hasta:</span>
+                            <span class="range-value" id="rangeEnd">0:00</span>
+                        </div>
+                        <div class="range-item">
+                            <span class="range-label">Duración:</span>
+                            <span class="range-value" id="rangeDuration">0s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-panel mt-3">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="action-btn flex-fill" id="btnPlayPause" disabled>
+                            <i class="bi bi-play-fill"></i> REPRODUCIR
+                        </button>
+                        <button class="action-btn flex-fill" id="btnStop" disabled>
+                            <i class="bi bi-stop-fill"></i> DETENER
+                        </button>
+                        <button class="action-btn flex-fill" id="btnChangeVideo" disabled>
+                            <i class="bi bi-arrow-repeat"></i> CAMBIAR VIDEO
+                        </button>
+                    </div>
+                    <div class="mt-3">
+                        <label class="form-label text-muted small mb-1">
+                            VOLUMEN PREVIEW: <span id="volumeValue">80</span>%
+                        </label>
+                        <input type="range" class="form-range" id="volumeSlider" min="0" max="100" value="80">
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="control-panel">
+                    <h5 class="panel-title">
+                        <i class="bi bi-sliders"></i> EFECTOS VHS
+                    </h5>
+
+                    <button class="effect-toggle" data-effect="scanlines">
+                        <span><i class="bi bi-list"></i> Scanlines</span>
+                        <span class="status-dot"></span>
+                    </button>
+                    <button class="effect-toggle" data-effect="noise">
+                        <span><i class="bi bi-stars"></i> Ruido/Niebla</span>
+                        <span class="status-dot"></span>
+                    </button>
+                    <button class="effect-toggle" data-effect="trackingshake">
+                        <span><i class="bi bi-arrows-move"></i> Tracking Shake (Fijo Abajo)</span>
+                        <span class="status-dot"></span>
+                    </button>
+                    <button class="effect-toggle" data-effect="rollingbar">
+                        <span><i class="bi bi-arrow-down-up"></i> Rolling Bar (Recorre Pantalla)</span>
+                        <span class="status-dot"></span>
+                    </button>
+                    <button class="effect-toggle" data-effect="chromatic">
+                        <span><i class="bi bi-rainbow"></i> Aberración Cromática</span>
+                        <span class="status-dot"></span>
+                    </button>
+                    <button class="effect-toggle" data-effect="vignette">
+                        <span><i class="bi bi-circle"></i> Viñeta</span>
+                        <span class="status-dot"></span>
+                    </button>
+                    <button class="effect-toggle" data-effect="shake">
+                        <span><i class="bi bi-arrows-angle-expand"></i> Temblor Video</span>
+                        <span class="status-dot"></span>
+                    </button>
+                    <button class="effect-toggle" data-effect="colorfade">
+                        <span><i class="bi bi-palette"></i> Color Desvanecido</span>
+                        <span class="status-dot"></span>
+                    </button>
+                    <button class="effect-toggle" data-effect="glitch">
+                        <span><i class="bi bi-lightning"></i> Glitch</span>
+                        <span class="status-dot"></span>
+                    </button>
+                    <button class="effect-toggle" data-effect="timestamp">
+                        <span><i class="bi bi-clock"></i> Timestamp VHS</span>
+                        <span class="status-dot"></span>
+                    </button>
+                    <button class="effect-toggle" data-effect="rec">
+                        <span><i class="bi bi-record-circle"></i> Indicador REC</span>
+                        <span class="status-dot"></span>
+                    </button>
+
+                    <div class="mt-3 mb-3">
+                        <label class="text-muted small d-block mb-2">PRESETS RÁPIDOS:</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="preset-btn" data-preset="light">Ligero</button>
+                            <button class="preset-btn" data-preset="classic">Clásico</button>
+                            <button class="preset-btn" data-preset="heavy">Intenso</button>
+                            <button class="preset-btn" data-preset="horror">Horror</button>
+                            <button class="preset-btn" data-preset="subtitle-killer">Rompe Subtítulos</button>
+                            <button class="preset-btn" data-preset="bad-tracking">Bad Tracking 90s</button>
+                            <button class="preset-btn" data-preset="none">Ninguno</button>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="intensity-label d-block mb-2">
+                            <i class="bi bi-speedometer2"></i> INTENSIDAD GENERAL
+                        </label>
+                        <input type="range" class="form-range" id="intensitySlider" min="0" max="100" value="70">
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">Sutil</small>
+                            <small class="text-muted">Extremo</small>
+                        </div>
+                    </div>
+
+                    <!-- PANEL DE VOLUMEN -->
+                    <div class="mt-4 pt-3 border-top border-secondary">
+                        <div class="volume-panel">
+                            <div class="volume-panel-title">
+                                <i class="bi bi-volume-up-fill"></i> VOLUMEN DE EXPORTACIÓN
+                            </div>
+                            <div class="volume-row">
+                                <label><i class="bi bi-speaker-fill"></i> Audio:</label>
+                                <input type="range" class="form-range" id="exportVolumeSlider" min="0" max="100" value="100">
+                                <span class="volume-value" id="exportVolumeValue">100%</span>
+                                <button class="volume-mute-btn" id="exportMuteBtn">
+                                    <i class="bi bi-volume-mute-fill"></i>
+                                </button>
+                            </div>
+                            <small class="info-text">
+                                <i class="bi bi-info-circle"></i>
+                                Independiente del volumen de preview. Afecta solo al video exportado.
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- PANEL DE FINALIZACIÓN PROFESIONAL -->
+                    <div class="mt-3">
+                        <div class="pro-panel">
+                            <div class="pro-panel-title">
+                                <i class="bi bi-stars"></i> FINALIZACIÓN PROFESIONAL
+                            </div>
+
+                            <button class="fade-toggle" id="fadeInToggle">
+                                <span><i class="bi bi-sunrise-fill"></i> Fade In (Inicio)</span>
+                                <span class="status-dot"></span>
+                            </button>
+                            <div class="fade-options" id="fadeInOptions">
+                                <label class="fade-label">Duración del fade in:</label>
+                                <div class="fade-duration-btns">
+                                    <button class="fade-duration-btn" data-fade="in" data-duration="0.5">0.5s</button>
+                                    <button class="fade-duration-btn active" data-fade="in" data-duration="1">1s</button>
+                                    <button class="fade-duration-btn" data-fade="in" data-duration="2">2s</button>
+                                    <button class="fade-duration-btn" data-fade="in" data-duration="3">3s</button>
+                                </div>
+                                <small class="info-text">
+                                    <i class="bi bi-info-circle"></i>
+                                    El video aparecerá gradualmente desde negro.
+                                </small>
+                            </div>
+
+                            <button class="fade-toggle active" id="fadeOutToggle">
+                                <span><i class="bi bi-sunset-fill"></i> Fade Out (Final)</span>
+                                <span class="status-dot"></span>
+                            </button>
+                            <div class="fade-options show" id="fadeOutOptions">
+                                <label class="fade-label">Duración del fade out:</label>
+                                <div class="fade-duration-btns">
+                                    <button class="fade-duration-btn" data-fade="out" data-duration="0.5">0.5s</button>
+                                    <button class="fade-duration-btn" data-fade="out" data-duration="1">1s</button>
+                                    <button class="fade-duration-btn active" data-fade="out" data-duration="2">2s</button>
+                                    <button class="fade-duration-btn" data-fade="out" data-duration="3">3s</button>
+                                    <button class="fade-duration-btn" data-fade="out" data-duration="5">5s</button>
+                                </div>
+                                <small class="info-text">
+                                    <i class="bi bi-info-circle"></i>
+                                    El video se desvanecerá a negro + audio con fade out sincronizado.
+                                </small>
+                            </div>
+
+                            <div class="export-summary mt-3" style="border-color: #444;">
+                                <div class="summary-row">
+                                    <span class="summary-label">Fade In:</span>
+                                    <span class="summary-value" id="summaryFadeIn" style="color: var(--vhs-purple);">Desactivado</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-label">Fade Out:</span>
+                                    <span class="summary-value" id="summaryFadeOut" style="color: var(--vhs-purple);">2s</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANEL DE DURACIÓN -->
+                    <div class="mt-3">
+                        <div class="duration-panel">
+                            <div class="duration-panel-title">
+                                <i class="bi bi-clock-history"></i> DURACIÓN DE EXPORTACIÓN
+                            </div>
+
+                            <div class="video-info-bar" id="videoInfoBar" style="display: none;">
+                                <div class="info-item">
+                                    <span class="info-label">Original:</span>
+                                    <span class="info-value" id="videoOriginalDuration">--:--</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Exportar:</span>
+                                    <span class="info-value" id="videoExportDuration">--:--</span>
+                                </div>
+                            </div>
+
+                            <div class="duration-warning" id="durationWarning">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                El rango excede el video. Se ajustará automáticamente.
+                            </div>
+
+                            <div class="duration-presets">
+                                <button class="duration-preset-btn" data-duration="15">
+                                    15s
+                                    <small>Estados</small>
+                                </button>
+                                <button class="duration-preset-btn" data-duration="30">
+                                    30s
+                                    <small>Historias</small>
+                                </button>
+                                <button class="duration-preset-btn" data-duration="60">
+                                    60s
+                                    <small>1 minuto</small>
+                                </button>
+                                <button class="duration-preset-btn whatsapp active" data-duration="90">
+                                    90s
+                                    <small>WhatsApp ★</small>
+                                </button>
+                                <button class="duration-preset-btn" data-duration="180">
+                                    3 min
+                                    <small>Redes</small>
+                                </button>
+                                <button class="duration-preset-btn" data-duration="full">
+                                    Completo
+                                    <small>Sin corte</small>
+                                </button>
+                            </div>
+
+                            <div class="duration-custom">
+                                <label for="customDuration">
+                                    <i class="bi bi-pencil-square"></i> Personalizado:
+                                </label>
+                                <input type="number" id="customDuration" min="1" max="3600" placeholder="45" step="1">
+                                <span style="color: #888; font-size: 0.85rem;">segundos</span>
+                            </div>
+
+                            <div class="export-summary">
+                                <div class="summary-row">
+                                    <span class="summary-label">Modo:</span>
+                                    <span class="summary-value" id="summaryMode">WhatsApp (90s)</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-label">Duración final:</span>
+                                    <span class="summary-value" id="summaryDuration">90s</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-label">Formato:</span>
+                                    <span class="summary-value">WebM</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6 class="text-warning mb-3">
+                            <i class="bi bi-download"></i> EXPORTAR
+                        </h6>
+                        <button class="action-btn btn-export" id="btnExport" disabled>
+                            <i class="bi bi-film"></i> EXPORTAR VIDEO CON EFECTOS
+                        </button>
+                        <small class="info-text d-block mt-2">
+                            <i class="bi bi-info-circle"></i> 
+                            Se grabará el video con todos los efectos, fades y volumen aplicados.
+                        </small>
+                        <div id="exportProgress" class="mt-2" style="display: none;">
+                            <div class="progress" style="height: 20px; background: #222;">
+                                <div class="progress-bar bg-danger progress-bar-striped progress-bar-animated" 
+                                     id="exportProgressBar" style="width: 0%">
+                                    0%
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-1" id="exportStatus">
+                                Preparando...
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="control-panel">
+                    <h5 class="panel-title">
+                        <i class="bi bi-info-circle"></i> CÓMO FUNCIONA
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <h6 class="text-success">1. CARGA VIDEO</h6>
+                            <p class="info-text mb-0">
+                                Arrastra o selecciona. Procesamiento 100% local.
+                            </p>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <h6 class="text-success">2. ELIGE INICIO</h6>
+                            <p class="info-text mb-0">
+                                Usa los botones de navegación o arrastra el marcador amarillo.
+                            </p>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <h6 class="text-success">3. APLICA EFECTOS</h6>
+                            <p class="info-text mb-0">
+                                Activa efectos VHS, fades y ajusta volumen.
+                            </p>
+                        </div>
+                        <div class="col-md-3 mb-0">
+                            <h6 class="text-success">4. EXPORTA</h6>
+                            <p class="info-text mb-0">
+                                Descarga el video profesional con todo aplicado.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="text-center text-muted py-4 mt-4 border-top border-secondary">
+            <small>
+                <i class="bi bi-camera-video-fill text-success"></i> 
+                VHS Effects Studio - Generación VHS → DVD → Digital
+            </small>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ===== ESTADO DE LA APLICACIÓN =====
+        const state = {
+            videoLoaded: false,
+            videoDuration: 0,
+            effects: {
+                scanlines: false, noise: false, trackingshake: false,
+                rollingbar: false, chromatic: false, vignette: false,
+                shake: false, colorfade: false, glitch: false,
+                timestamp: false, rec: false
+            },
+            intensity: 70,
+            isRecording: false,
+            durationMode: 'preset',
+            selectedDuration: 90,
+            effectiveDuration: 90,
+            fadeIn: { enabled: false, duration: 1 },
+            fadeOut: { enabled: true, duration: 2 },
+            exportVolume: 100,
+            exportMuted: false,
+            // NUEVO: Punto de inicio
+            startPoint: 0,
+            exportStartTime: 0,
+            exportEndTime: 0
+        };
+
+        // ===== ELEMENTOS DEL DOM =====
+        const video = document.getElementById('videoPlayer');
+        const uploadArea = document.getElementById('uploadArea');
+        const videoInput = document.getElementById('videoInput');
+        const btnPlayPause = document.getElementById('btnPlayPause');
+        const btnStop = document.getElementById('btnStop');
+        const btnChangeVideo = document.getElementById('btnChangeVideo');
+        const btnExport = document.getElementById('btnExport');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const intensitySlider = document.getElementById('intensitySlider');
+        const timestampOverlay = document.getElementById('timestampOverlay');
+
+        // ===== UTILIDADES =====
+        function formatTime(seconds) {
+            if (!seconds || isNaN(seconds)) return '0:00';
+            const s = Math.floor(seconds);
+            const mins = Math.floor(s / 60);
+            const secs = s % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function formatDurationLabel(seconds) {
+            if (seconds >= 60) {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return secs > 0 ? `${mins}m ${secs}s` : `${mins}min`;
+            }
+            return `${seconds}s`;
+        }
+
+        // ===== ACTUALIZAR RESUMEN =====
+        function updateExportSummary() {
+            const summaryMode = document.getElementById('summaryMode');
+            const summaryDuration = document.getElementById('summaryDuration');
+            const videoOriginalDuration = document.getElementById('videoOriginalDuration');
+            const videoExportDuration = document.getElementById('videoExportDuration');
+            const videoInfoBar = document.getElementById('videoInfoBar');
+            const durationWarning = document.getElementById('durationWarning');
+
+            // Calcular duración efectiva
+            if (state.durationMode === 'full') {
+                state.effectiveDuration = state.videoDuration - state.startPoint;
+                summaryMode.textContent = 'Completo';
+            } else {
+                state.effectiveDuration = state.selectedDuration;
+                
+                if (state.durationMode === 'custom') {
+                    summaryMode.textContent = `Personalizado (${state.selectedDuration}s)`;
+                } else if (state.selectedDuration === 90) {
+                    summaryMode.textContent = 'WhatsApp (90s)';
+                } else {
+                    summaryMode.textContent = `Preset (${state.selectedDuration}s)`;
+                }
+            }
+
+            // Calcular rango de exportación
+            state.exportStartTime = state.startPoint;
+            state.exportEndTime = Math.min(state.startPoint + state.effectiveDuration, state.videoDuration);
+
+            // Verificar si el rango excede el video
+            if (state.startPoint + state.effectiveDuration > state.videoDuration) {
+                state.effectiveDuration = state.videoDuration - state.startPoint;
+                state.exportEndTime = state.videoDuration;
+                durationWarning.classList.add('show');
+            } else {
+                durationWarning.classList.remove('show');
+            }
+
+            if (state.videoDuration > 0) {
+                videoInfoBar.style.display = 'flex';
+                videoOriginalDuration.textContent = formatTime(state.videoDuration);
+                videoExportDuration.textContent = formatTime(state.effectiveDuration);
+                summaryDuration.textContent = formatDurationLabel(state.effectiveDuration);
+            } else {
+                videoInfoBar.style.display = 'none';
+                summaryDuration.textContent = '--';
+            }
+
+            // Actualizar rango visual
+            updateRangeInfo();
+            updateTimelineRange();
+            updateFadeSummary();
+        }
+
+        function updateRangeInfo() {
+            document.getElementById('rangeStart').textContent = formatTime(state.exportStartTime);
+            document.getElementById('rangeEnd').textContent = formatTime(state.exportEndTime);
+            document.getElementById('rangeDuration').textContent = formatDurationLabel(state.effectiveDuration);
+        }
+
+        function updateFadeSummary() {
+            const summaryFadeIn = document.getElementById('summaryFadeIn');
+            const summaryFadeOut = document.getElementById('summaryFadeOut');
+            
+            summaryFadeIn.textContent = state.fadeIn.enabled 
+                ? `${state.fadeIn.duration}s` 
+                : 'Desactivado';
+            summaryFadeIn.style.color = state.fadeIn.enabled 
+                ? 'var(--vhs-purple)' 
+                : '#666';
+                
+            summaryFadeOut.textContent = state.fadeOut.enabled 
+                ? `${state.fadeOut.duration}s` 
+                : 'Desactivado';
+            summaryFadeOut.style.color = state.fadeOut.enabled 
+                ? 'var(--vhs-purple)' 
+                : '#666';
+        }
+
+        // ===== NUEVO: TIMELINE Y NAVEGACIÓN =====
+        function updateTimeline() {
+            if (!state.videoLoaded) return;
+
+            const currentTime = video.currentTime;
+            const duration = state.videoDuration;
+            const progressPercent = (currentTime / duration) * 100;
+
+            // Actualizar cursor
+            document.getElementById('timelineCursor').style.left = progressPercent + '%';
+            document.getElementById('timelineProgress').style.width = progressPercent + '%';
+
+            // Actualizar time display
+            document.getElementById('timeCurrent').textContent = formatTime(currentTime);
+            document.getElementById('timeTotal').textContent = '/ ' + formatTime(duration);
+        }
+
+        function updateTimelineRange() {
+            if (!state.videoLoaded) return;
+
+            const duration = state.videoDuration;
+            const startPercent = (state.exportStartTime / duration) * 100;
+            const endPercent = (state.exportEndTime / duration) * 100;
+
+            const range = document.getElementById('timelineRange');
+            range.style.left = startPercent + '%';
+            range.style.width = (endPercent - startPercent) + '%';
+
+            // Actualizar marcador de inicio
+            document.getElementById('timelineStartMarker').style.left = startPercent + '%';
+        }
+
+        // Click en timeline para saltar
+        document.getElementById('timelineContainer').addEventListener('click', (e) => {
+            if (!state.videoLoaded) return;
+            
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const percent = x / rect.width;
+            const newTime = percent * state.videoDuration;
+            
+            video.currentTime = Math.max(0, Math.min(newTime, state.videoDuration));
+        });
+
+        // Arrastrar marcador de inicio
+        let isDraggingStart = false;
+        const startMarker = document.getElementById('timelineStartMarker');
+
+        startMarker.addEventListener('mousedown', (e) => {
+            isDraggingStart = true;
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDraggingStart || !state.videoLoaded) return;
+
+            const timeline = document.getElementById('timelineContainer');
+            const rect = timeline.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const percent = Math.max(0, Math.min(x / rect.width, 1));
+            const newStart = percent * state.videoDuration;
+
+            state.startPoint = newStart;
+            document.getElementById('startPointInput').value = Math.floor(newStart);
+            updateTimelineRange();
+            updateExportSummary();
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDraggingStart = false;
+        });
+
+        // Botones de navegación
+        document.querySelectorAll('.nav-btn[data-skip]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!state.videoLoaded) return;
+                
+                const skip = parseInt(btn.dataset.skip);
+                const newTime = Math.max(0, Math.min(video.currentTime + skip, state.videoDuration));
+                video.currentTime = newTime;
+            });
+        });
+
+        // Botón marcar inicio
+        document.getElementById('btnMarkStart').addEventListener('click', () => {
+            if (!state.videoLoaded) return;
+            
+            state.startPoint = video.currentTime;
+            document.getElementById('startPointInput').value = Math.floor(video.currentTime);
+            updateTimelineRange();
+            updateExportSummary();
+        });
+
+        // Input de punto de inicio
+        document.getElementById('startPointInput').addEventListener('change', (e) => {
+            if (!state.videoLoaded) return;
+            
+            const value = parseInt(e.target.value) || 0;
+            state.startPoint = Math.max(0, Math.min(value, state.videoDuration));
+            e.target.value = Math.floor(state.startPoint);
+            updateTimelineRange();
+            updateExportSummary();
+        });
+
+        // Botón aplicar inicio
+        document.getElementById('btnSetStart').addEventListener('click', () => {
+            if (!state.videoLoaded) return;
+            
+            const value = parseInt(document.getElementById('startPointInput').value) || 0;
+            state.startPoint = Math.max(0, Math.min(value, state.videoDuration));
+            document.getElementById('startPointInput').value = Math.floor(state.startPoint);
+            video.currentTime = state.startPoint;
+            updateTimelineRange();
+            updateExportSummary();
+        });
+
+        // Actualizar timeline durante reproducción
+        video.addEventListener('timeupdate', updateTimeline);
+
+        // ===== CARGA DE VIDEO =====
+        uploadArea.addEventListener('click', () => videoInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('video/')) loadVideo(file);
+        });
+
+        videoInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) loadVideo(file);
+        });
+
+        function loadVideo(file) {
+            const url = URL.createObjectURL(file);
+            video.src = url;
+            video.load();
+            
+            video.addEventListener('loadedmetadata', () => {
+                state.videoLoaded = true;
+                state.videoDuration = video.duration;
+                state.startPoint = 0;
+                uploadArea.classList.add('hidden');
+                btnPlayPause.disabled = false;
+                btnStop.disabled = false;
+                btnChangeVideo.disabled = false;
+                btnExport.disabled = false;
+                video.volume = volumeSlider.value / 100;
+                
+                // Mostrar panel de navegación
+                document.getElementById('navigationPanel').style.display = 'block';
+                document.getElementById('timeTotal').textContent = '/ ' + formatTime(video.duration);
+                
+                updateExportSummary();
+                updateTimeline();
+            }, { once: true });
+        }
+
+        // ===== CONTROLES DE VIDEO =====
+        btnPlayPause.addEventListener('click', () => {
+            if (video.paused) {
+                video.play();
+                btnPlayPause.innerHTML = '<i class="bi bi-pause-fill"></i> PAUSAR';
+            } else {
+                video.pause();
+                btnPlayPause.innerHTML = '<i class="bi bi-play-fill"></i> REPRODUCIR';
+            }
+        });
+
+        btnStop.addEventListener('click', () => {
+            video.pause();
+            video.currentTime = state.startPoint;
+            btnPlayPause.innerHTML = '<i class="bi bi-play-fill"></i> REPRODUCIR';
+        });
+
+        btnChangeVideo.addEventListener('click', () => {
+            video.pause();
+            video.src = '';
+            videoInput.value = '';
+            uploadArea.classList.remove('hidden');
+            btnPlayPause.disabled = true;
+            btnStop.disabled = true;
+            btnChangeVideo.disabled = true;
+            btnExport.disabled = true;
+            btnPlayPause.innerHTML = '<i class="bi bi-play-fill"></i> REPRODUCIR';
+            state.videoLoaded = false;
+            state.videoDuration = 0;
+            state.startPoint = 0;
+            document.getElementById('navigationPanel').style.display = 'none';
+            updateExportSummary();
+        });
+
+        volumeSlider.addEventListener('input', (e) => {
+            video.volume = e.target.value / 100;
+            document.getElementById('volumeValue').textContent = e.target.value;
+        });
+
+        // ===== TOGGLE DE EFECTOS =====
+        document.querySelectorAll('.effect-toggle').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const effect = btn.dataset.effect;
+                state.effects[effect] = !state.effects[effect];
+                btn.classList.toggle('active');
+                applyEffects();
+            });
+        });
+
+        function applyEffects() {
+            const intensity = state.intensity / 100;
+
+            const scanlines = document.getElementById('scanlinesOverlay');
+            scanlines.classList.toggle('active', state.effects.scanlines);
+            scanlines.style.opacity = state.effects.scanlines ? intensity : 0;
+
+            const noise = document.getElementById('noiseOverlay');
+            noise.classList.toggle('active', state.effects.noise);
+            noise.style.opacity = state.effects.noise ? intensity * 0.5 : 0;
+
+            document.getElementById('trackingShakeOverlay').classList.toggle('active', state.effects.trackingshake);
+            document.getElementById('rollingBarOverlay').classList.toggle('active', state.effects.rollingbar);
+            document.getElementById('vignetteOverlay').classList.toggle('active', state.effects.vignette);
+            timestampOverlay.classList.toggle('active', state.effects.timestamp);
+            document.getElementById('recIndicator').classList.toggle('active', state.effects.rec);
+
+            video.classList.toggle('chromatic-aberration', state.effects.chromatic);
+            if (state.effects.chromatic) {
+                const offset = Math.round(intensity * 4);
+                video.style.filter = `drop-shadow(-${offset}px 0 0 rgba(255, 0, 0, 0.7)) drop-shadow(${offset}px 0 0 rgba(0, 255, 255, 0.7))`;
+            } else if (!state.effects.colorfade) {
+                video.style.filter = '';
+            }
+
+            video.classList.toggle('shake-effect', state.effects.shake);
+            video.classList.toggle('color-fade', state.effects.colorfade);
+            video.classList.toggle('glitch-effect', state.effects.glitch);
+        }
+
+        intensitySlider.addEventListener('input', (e) => {
+            state.intensity = parseInt(e.target.value);
+            applyEffects();
+        });
+
+        // ===== PRESETS DE EFECTOS =====
+        const presets = {
+            light: ['scanlines', 'vignette'],
+            classic: ['scanlines', 'noise', 'vignette', 'timestamp', 'chromatic'],
+            heavy: ['scanlines', 'noise', 'trackingshake', 'rollingbar', 'vignette', 'timestamp', 'rec', 'chromatic', 'shake'],
+            horror: ['scanlines', 'noise', 'trackingshake', 'rollingbar', 'vignette', 'glitch', 'colorfade', 'shake'],
+            'subtitle-killer': ['rollingbar', 'trackingshake', 'noise', 'scanlines'],
+            'bad-tracking': ['trackingshake', 'noise', 'scanlines', 'chromatic'],
+            none: []
+        };
+
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const preset = btn.dataset.preset;
+                Object.keys(state.effects).forEach(key => { state.effects[key] = false; });
+                document.querySelectorAll('.effect-toggle').forEach(t => t.classList.remove('active'));
+                
+                presets[preset].forEach(effect => {
+                    state.effects[effect] = true;
+                    document.querySelector(`[data-effect="${effect}"]`).classList.add('active');
+                });
+                
+                applyEffects();
+            });
+        });
+
+        // ===== CONTROLES DE DURACIÓN =====
+        document.querySelectorAll('.duration-preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.duration-preset-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const durationValue = btn.dataset.duration;
+                
+                if (durationValue === 'full') {
+                    state.durationMode = 'full';
+                    state.selectedDuration = state.videoDuration - state.startPoint;
+                    document.getElementById('customDuration').value = '';
+                } else {
+                    state.durationMode = 'preset';
+                    state.selectedDuration = parseInt(durationValue);
+                    document.getElementById('customDuration').value = '';
+                }
+                
+                updateExportSummary();
+            });
+        });
+
+        document.getElementById('customDuration').addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            if (value && value > 0) {
+                document.querySelectorAll('.duration-preset-btn').forEach(b => b.classList.remove('active'));
+                state.durationMode = 'custom';
+                state.selectedDuration = Math.min(value, 3600);
+                updateExportSummary();
+            }
+        });
+
+        // ===== CONTROLES DE FADE =====
+        document.getElementById('fadeInToggle').addEventListener('click', () => {
+            state.fadeIn.enabled = !state.fadeIn.enabled;
+            document.getElementById('fadeInToggle').classList.toggle('active', state.fadeIn.enabled);
+            document.getElementById('fadeInOptions').classList.toggle('show', state.fadeIn.enabled);
+            updateFadeSummary();
+        });
+
+        document.getElementById('fadeOutToggle').addEventListener('click', () => {
+            state.fadeOut.enabled = !state.fadeOut.enabled;
+            document.getElementById('fadeOutToggle').classList.toggle('active', state.fadeOut.enabled);
+            document.getElementById('fadeOutOptions').classList.toggle('show', state.fadeOut.enabled);
+            updateFadeSummary();
+        });
+
+        document.querySelectorAll('.fade-duration-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const fadeType = btn.dataset.fade;
+                const duration = parseFloat(btn.dataset.duration);
+                
+                document.querySelectorAll(`.fade-duration-btn[data-fade="${fadeType}"]`)
+                    .forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                if (fadeType === 'in') {
+                    state.fadeIn.duration = duration;
+                } else {
+                    state.fadeOut.duration = duration;
+                }
+                
+                updateFadeSummary();
+            });
+        });
+
+        // ===== CONTROLES DE VOLUMEN DE EXPORTACIÓN =====
+        const exportVolumeSlider = document.getElementById('exportVolumeSlider');
+        const exportVolumeValue = document.getElementById('exportVolumeValue');
+        const exportMuteBtn = document.getElementById('exportMuteBtn');
+
+        exportVolumeSlider.addEventListener('input', (e) => {
+            state.exportVolume = parseInt(e.target.value);
+            exportVolumeValue.textContent = state.exportVolume + '%';
+            
+            if (state.exportMuted && state.exportVolume > 0) {
+                state.exportMuted = false;
+                exportMuteBtn.classList.remove('muted');
+            }
+        });
+
+        exportMuteBtn.addEventListener('click', () => {
+            state.exportMuted = !state.exportMuted;
+            exportMuteBtn.classList.toggle('muted', state.exportMuted);
+            
+            if (state.exportMuted) {
+                exportVolumeSlider.value = 0;
+                state.exportVolume = 0;
+                exportVolumeValue.textContent = '0%';
+            } else {
+                exportVolumeSlider.value = 100;
+                state.exportVolume = 100;
+                exportVolumeValue.textContent = '100%';
+            }
+        });
+
+        // ===== TIMESTAMP DINÁMICO =====
+        function updateTimestamp() {
+            if (state.effects.timestamp) {
+                const time = video.currentTime || 0;
+                const hrs = Math.floor(time / 3600).toString().padStart(2, '0');
+                const mins = Math.floor((time % 3600) / 60).toString().padStart(2, '0');
+                const secs = Math.floor(time % 60).toString().padStart(2, '0');
+                const playState = video.paused ? 'PAUSE' : 'PLAY';
+                timestampOverlay.textContent = `${playState}  ${hrs}:${mins}:${secs}`;
+            }
+        }
+        setInterval(updateTimestamp, 500);
+
+        video.addEventListener('play', () => {
+            document.getElementById('playIndicator').classList.add('active');
+            document.getElementById('playIndicator').textContent = '▶ PLAY';
+        });
+
+        video.addEventListener('pause', () => {
+            document.getElementById('playIndicator').textContent = '❚❚ PAUSE';
+        });
+
+        // ===== EXPORTAR VIDEO (CON PUNTO DE INICIO, FADES Y VOLUMEN) =====
+        btnExport.addEventListener('click', async () => {
+            if (!state.videoLoaded || state.isRecording) return;
+
+            state.isRecording = true;
+            btnExport.disabled = true;
+            document.getElementById('exportProgress').style.display = 'block';
+            document.getElementById('recordingBanner').classList.add('active');
+            document.getElementById('exportStatus').textContent = 'Preparando grabación...';
+
+            const exportDuration = state.effectiveDuration;
+            const baseVolume = state.exportMuted ? 0 : (state.exportVolume / 100);
+
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+
+                const canvasStream = canvas.captureStream(30);
+                
+                let audioCtx = null;
+                let gainNode = null;
+                let sourceNode = null;
+                let combinedStream = canvasStream;
+                
+                try {
+                    audioCtx = new AudioContext();
+                    sourceNode = audioCtx.createMediaElementSource(video);
+                    gainNode = audioCtx.createGain();
+                    const destination = audioCtx.createMediaStreamDestination();
+                    
+                    sourceNode.connect(gainNode);
+                    gainNode.connect(destination);
+                    sourceNode.connect(audioCtx.destination);
+                    
+                    gainNode.gain.value = baseVolume;
+                    
+                    destination.stream.getAudioTracks().forEach(track => {
+                        canvasStream.addTrack(track);
+                    });
+                    combinedStream = canvasStream;
+                } catch (e) {
+                    console.warn('No se pudo capturar audio:', e);
+                }
+
+                const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') 
+                    ? 'video/webm;codecs=vp9' 
+                    : 'video/webm';
+                const recorder = new MediaRecorder(combinedStream, { 
+                    mimeType: mimeType,
+                    videoBitsPerSecond: 5000000
+                });
+                
+                const chunks = [];
+                recorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) chunks.push(e.data);
+                };
+
+                recorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    const startLabel = Math.round(state.exportStartTime);
+                    const durationLabel = Math.round(exportDuration);
+                    a.download = `vhs_export_${startLabel}s-${durationLabel}s_${Date.now()}.webm`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+
+                    if (gainNode) {
+                        gainNode.gain.value = 1;
+                    }
+
+                    state.isRecording = false;
+                    btnExport.disabled = false;
+                    document.getElementById('recordingBanner').classList.remove('active');
+                    document.getElementById('exportStatus').textContent = '¡Exportación completada!';
+                    document.getElementById('exportProgressBar').style.width = '100%';
+                    document.getElementById('exportProgressBar').textContent = '100%';
+                };
+
+                function drawFrame() {
+                    const relativeTime = video.currentTime - state.exportStartTime;
+                    
+                    if (relativeTime >= exportDuration) {
+                        recorder.stop();
+                        video.pause();
+                        return;
+                    }
+
+                    if (video.ended || video.paused) {
+                        if (video.ended) recorder.stop();
+                        return;
+                    }
+
+                    const intensity = state.intensity / 100;
+
+                    // Calcular opacidad de fade
+                    let fadeOpacity = 0;
+
+                    if (state.fadeIn.enabled && relativeTime < state.fadeIn.duration) {
+                        fadeOpacity = 1 - (relativeTime / state.fadeIn.duration);
+                    }
+
+                    if (state.fadeOut.enabled) {
+                        const fadeOutStart = exportDuration - state.fadeOut.duration;
+                        if (relativeTime >= fadeOutStart) {
+                            const fadeOutProgress = (relativeTime - fadeOutStart) / state.fadeOut.duration;
+                            fadeOpacity = Math.max(fadeOpacity, fadeOutProgress);
+                        }
+                    }
+
+                    // Aplicar fade de audio
+                    if (gainNode) {
+                        let audioGain = baseVolume;
+                        
+                        if (state.fadeIn.enabled && relativeTime < state.fadeIn.duration) {
+                            const fadeInProgress = relativeTime / state.fadeIn.duration;
+                            audioGain = baseVolume * fadeInProgress;
+                        }
+                        
+                        if (state.fadeOut.enabled) {
+                            const fadeOutStart = exportDuration - state.fadeOut.duration;
+                            if (relativeTime >= fadeOutStart) {
+                                const fadeOutProgress = (relativeTime - fadeOutStart) / state.fadeOut.duration;
+                                audioGain = baseVolume * (1 - fadeOutProgress);
+                            }
+                        }
+                        
+                        gainNode.gain.value = Math.max(0, audioGain);
+                    }
+
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    // Aplicar efectos VHS
+                    if (state.effects.scanlines) {
+                        ctx.fillStyle = `rgba(0, 0, 0, ${0.2 * intensity})`;
+                        for (let y = 0; y < canvas.height; y += 4) {
+                            ctx.fillRect(0, y, canvas.width, 2);
+                        }
+                    }
+
+                    if (state.effects.noise) {
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const data = imageData.data;
+                        const noiseAmount = intensity * 30;
+                        for (let i = 0; i < data.length; i += 40) {
+                            const noise = (Math.random() - 0.5) * noiseAmount;
+                            data[i] += noise;
+                            data[i + 1] += noise;
+                            data[i + 2] += noise;
+                        }
+                        ctx.putImageData(imageData, 0, 0);
+                    }
+
+                    if (state.effects.vignette) {
+                        const gradient = ctx.createRadialGradient(
+                            canvas.width / 2, canvas.height / 2, canvas.width * 0.3,
+                            canvas.width / 2, canvas.height / 2, canvas.width * 0.7
+                        );
+                        gradient.addColorStop(0, 'rgba(0,0,0,0)');
+                        gradient.addColorStop(1, `rgba(0,0,0,${0.8 * intensity})`);
+                        ctx.fillStyle = gradient;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    }
+
+                    if (state.effects.trackingshake) {
+                        const barHeight = 60;
+                        const shakeAmount = 5 * intensity;
+                        const shakeY = (Math.random() - 0.5) * shakeAmount;
+                        const scaleY = 1 + (Math.random() - 0.5) * 0.1 * intensity;
+                        
+                        const gradient = ctx.createLinearGradient(0, canvas.height - barHeight + shakeY, 0, canvas.height + shakeY);
+                        gradient.addColorStop(0, `rgba(255, 255, 255, ${0.9 * intensity})`);
+                        gradient.addColorStop(0.25, `rgba(0, 0, 0, ${0.9 * intensity})`);
+                        gradient.addColorStop(0.5, `rgba(255, 255, 255, ${0.7 * intensity})`);
+                        gradient.addColorStop(0.75, `rgba(0, 0, 0, ${0.8 * intensity})`);
+                        gradient.addColorStop(1, `rgba(255, 255, 255, ${0.85 * intensity})`);
+                        
+                        ctx.save();
+                        ctx.translate(0, shakeY);
+                        ctx.scale(1, scaleY);
+                        ctx.fillStyle = gradient;
+                        ctx.fillRect(0, canvas.height - barHeight, canvas.width, barHeight);
+                        ctx.restore();
+                    }
+
+                    if (state.effects.rollingbar) {
+                        const barHeight = 80;
+                        const cycleTime = 8000;
+                        const cycleCurrentTime = Date.now() % cycleTime;
+                        const barY = (cycleCurrentTime / cycleTime) * (canvas.height + barHeight) - barHeight;
+                        
+                        const gradient = ctx.createLinearGradient(0, barY, 0, barY + barHeight);
+                        gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                        gradient.addColorStop(0.2, `rgba(255, 255, 255, ${0.3 * intensity})`);
+                        gradient.addColorStop(0.4, `rgba(0, 0, 0, ${0.6 * intensity})`);
+                        gradient.addColorStop(0.6, `rgba(255, 255, 255, ${0.4 * intensity})`);
+                        gradient.addColorStop(0.8, `rgba(0, 0, 0, ${0.5 * intensity})`);
+                        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                        
+                        ctx.fillStyle = gradient;
+                        ctx.fillRect(0, barY, canvas.width, barHeight);
+                    }
+
+                    if (state.effects.timestamp) {
+                        const time = video.currentTime;
+                        const hrs = Math.floor(time / 3600).toString().padStart(2, '0');
+                        const mins = Math.floor((time % 3600) / 60).toString().padStart(2, '0');
+                        const secs = Math.floor(time % 60).toString().padStart(2, '0');
+                        ctx.font = `bold ${Math.round(canvas.width * 0.03)}px Courier New`;
+                        ctx.fillStyle = '#fff';
+                        ctx.strokeStyle = '#000';
+                        ctx.lineWidth = 3;
+                        const text = `PLAY  ${hrs}:${mins}:${secs}`;
+                        const textWidth = ctx.measureText(text).width;
+                        ctx.strokeText(text, canvas.width - textWidth - 30, canvas.height - 30);
+                        ctx.fillText(text, canvas.width - textWidth - 30, canvas.height - 30);
+                    }
+
+                    if (state.effects.rec) {
+                        ctx.font = `bold ${Math.round(canvas.width * 0.025)}px Courier New`;
+                        ctx.fillStyle = Math.floor(Date.now() / 500) % 2 ? '#ff0000' : '#aa0000';
+                        ctx.strokeStyle = '#000';
+                        ctx.lineWidth = 3;
+                        ctx.strokeText('● REC', 30, 50);
+                        ctx.fillText('● REC', 30, 50);
+                    }
+
+                    // Aplicar fade
+                    if (fadeOpacity > 0) {
+                        ctx.fillStyle = `rgba(0, 0, 0, ${fadeOpacity})`;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    }
+
+                    // Actualizar progreso
+                    if (exportDuration > 0) {
+                        const progress = (relativeTime / exportDuration) * 100;
+                        document.getElementById('exportProgressBar').style.width = Math.min(progress, 100) + '%';
+                        document.getElementById('exportProgressBar').textContent = Math.round(Math.min(progress, 100)) + '%';
+                        
+                        let statusText = `Grabando... ${Math.round(relativeTime)}s / ${Math.round(exportDuration)}s`;
+                        if (state.fadeOut.enabled && relativeTime >= exportDuration - state.fadeOut.duration) {
+                            statusText += ' [FADE OUT]';
+                        }
+                        document.getElementById('exportStatus').textContent = statusText;
+                    }
+
+                    requestAnimationFrame(drawFrame);
+                }
+
+                recorder.start();
+                video.currentTime = state.exportStartTime;
+                await video.play();
+                drawFrame();
+
+                video.onended = () => {
+                    recorder.stop();
+                    video.onended = null;
+                };
+
+            } catch (err) {
+                console.error('Error al exportar:', err);
+                alert('Error al exportar el video: ' + err.message);
+                state.isRecording = false;
+                btnExport.disabled = false;
+                document.getElementById('recordingBanner').classList.remove('active');
+                document.getElementById('exportStatus').textContent = 'Error en la exportación';
+            }
+        });
+
+        video.volume = 0.8;
+        updateExportSummary();
+    </script>
+</body>
+</html>
