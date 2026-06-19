@@ -13,33 +13,28 @@
             --vhs-blue: #0080ff;
             --vhs-yellow: #ffcc00;
             --vhs-purple: #cc66ff;
+            --vhs-orange: #ff8800;
             --bg-dark: #0a0a0a;
             --panel-bg: #1a1a1a;
         }
-
         * { box-sizing: border-box; }
-
         body {
             background-color: var(--bg-dark);
             color: #fff;
             font-family: 'Courier New', monospace;
             min-height: 100vh;
         }
-
         .app-header {
             background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
             border-bottom: 2px solid #333;
             padding: 1rem 0;
         }
-
         .app-title {
             color: var(--vhs-green);
-            text-shadow: 2px 2px 0px rgba(255, 0, 0, 0.5),
-                        -2px -2px 0px rgba(0, 0, 255, 0.5);
+            text-shadow: 2px 2px 0px rgba(255, 0, 0, 0.5), -2px -2px 0px rgba(0, 0, 255, 0.5);
             letter-spacing: 3px;
             font-weight: bold;
         }
-
         .video-wrapper {
             position: relative;
             background: #000;
@@ -49,15 +44,12 @@
             aspect-ratio: 16/9;
             box-shadow: 0 0 30px rgba(0, 255, 0, 0.1);
         }
-
-        .video-wrapper video,
-        .video-wrapper canvas {
+        .video-wrapper video {
             width: 100%;
             height: 100%;
             object-fit: contain;
             display: block;
         }
-
         .upload-area {
             position: absolute;
             top: 0; left: 0;
@@ -71,20 +63,16 @@
             transition: all 0.3s;
             z-index: 10;
         }
-
         .upload-area:hover, .upload-area.dragover {
             border-color: var(--vhs-green);
             background: rgba(0, 255, 0, 0.05);
         }
-
         .upload-area.hidden { display: none; }
-
         .upload-icon {
             font-size: 4rem;
             color: var(--vhs-green);
             margin-bottom: 1rem;
         }
-
         .vhs-overlay {
             position: absolute;
             top: 0; left: 0;
@@ -92,7 +80,6 @@
             pointer-events: none;
             z-index: 5;
         }
-
         .scanlines-overlay {
             background: linear-gradient(to bottom,
                 rgba(255,255,255,0) 0%, rgba(255,255,255,0) 50%,
@@ -101,35 +88,29 @@
             opacity: 0;
             transition: opacity 0.3s;
         }
-
         .scanlines-overlay.active {
             opacity: 1;
             animation: scanlineScroll 8s linear infinite;
         }
-
         @keyframes scanlineScroll {
             0% { background-position: 0 0; }
             100% { background-position: 0 100px; }
         }
-
         .noise-overlay {
             opacity: 0;
             transition: opacity 0.3s;
             mix-blend-mode: overlay;
         }
-
         .noise-overlay.active {
             opacity: 0.4;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
             animation: noiseFlicker 0.1s steps(2) infinite;
         }
-
         @keyframes noiseFlicker {
             0% { transform: translate(0, 0); }
             50% { transform: translate(-2px, 2px); }
             100% { transform: translate(2px, -2px); }
         }
-
         .tracking-shake-overlay {
             position: absolute;
             bottom: 0; left: 0;
@@ -144,12 +125,10 @@
             z-index: 6;
             pointer-events: none;
         }
-
         .tracking-shake-overlay.active {
             opacity: 0.85;
             animation: trackingShake 0.08s infinite;
         }
-
         @keyframes trackingShake {
             0% { transform: translateY(0) scaleY(1); }
             25% { transform: translateY(-3px) scaleY(1.05); }
@@ -157,7 +136,6 @@
             75% { transform: translateY(-1px) scaleY(1.02); }
             100% { transform: translateY(0) scaleY(1); }
         }
-
         .rolling-bar-overlay {
             position: absolute;
             left: 0;
@@ -172,22 +150,17 @@
             pointer-events: none;
             animation: rollingBarMove 8s linear infinite;
         }
-
         .rolling-bar-overlay.active { opacity: 0.7; }
-
         @keyframes rollingBarMove {
             0% { top: -80px; }
             100% { top: 100%; }
         }
-
         .vignette-overlay {
             box-shadow: inset 0 0 150px rgba(0,0,0,0.9);
             opacity: 0;
             transition: opacity 0.3s;
         }
-
         .vignette-overlay.active { opacity: 1; }
-
         .vhs-timestamp {
             position: absolute;
             bottom: 20px; right: 20px;
@@ -201,19 +174,16 @@
             opacity: 0;
             transition: opacity 0.3s;
         }
-
         .vhs-timestamp.active {
             opacity: 1;
             animation: timestampFlicker 3s infinite;
         }
-
         @keyframes timestampFlicker {
             0%, 95%, 100% { opacity: 1; }
             96% { opacity: 0.3; }
             97% { opacity: 1; }
             98% { opacity: 0.5; }
         }
-
         .rec-indicator {
             position: absolute;
             top: 20px; left: 20px;
@@ -225,23 +195,19 @@
             opacity: 0;
             transition: opacity 0.3s;
         }
-
         .rec-indicator.active {
             opacity: 1;
             animation: recBlink 1s infinite;
         }
-
         .rec-indicator::before {
             content: "●";
             margin-right: 5px;
             font-size: 1.5rem;
         }
-
         @keyframes recBlink {
             0%, 50% { opacity: 1; }
             51%, 100% { opacity: 0.3; }
         }
-
         .play-indicator {
             position: absolute;
             top: 20px; right: 20px;
@@ -253,43 +219,102 @@
             opacity: 0;
             transition: opacity 0.3s;
         }
-
         .play-indicator.active { opacity: 1; }
-
         .chromatic-aberration {
             filter: drop-shadow(-2px 0 0 rgba(255, 0, 0, 0.7))
                     drop-shadow(2px 0 0 rgba(0, 255, 255, 0.7));
         }
-
         .shake-effect { animation: videoShake 0.15s infinite; }
-
         @keyframes videoShake {
             0%, 100% { transform: translate(0, 0); }
             25% { transform: translate(-1px, 1px); }
             50% { transform: translate(1px, -1px); }
             75% { transform: translate(-1px, -1px); }
         }
-
         .color-fade {
             filter: saturate(0.5) sepia(0.3) contrast(1.1) brightness(0.95);
         }
-
         .glitch-effect { animation: glitchEffect 3s infinite; }
-
         @keyframes glitchEffect {
             0%, 90%, 100% { clip-path: inset(0 0 0 0); transform: translate(0, 0); }
             92% { clip-path: inset(20% 0 60% 0); transform: translate(-5px, 0); }
             94% { clip-path: inset(50% 0 20% 0); transform: translate(5px, 0); }
             96% { clip-path: inset(10% 0 70% 0); transform: translate(-3px, 0); }
         }
-
+        /* Títulos */
+        .title-overlay {
+            position: absolute;
+            z-index: 8;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            text-align: center;
+            width: 90%;
+            left: 5%;
+        }
+        .title-overlay.active { opacity: 1; }
+        .title-overlay.position-top { top: 10%; }
+        .title-overlay.position-center { top: 50%; transform: translateY(-50%); }
+        .title-overlay.position-bottom { bottom: 15%; }
+        .title-text {
+            display: inline-block;
+            padding: 10px 20px;
+            line-height: 1.3;
+            word-wrap: break-word;
+            max-width: 100%;
+        }
+        .title-style-classic {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 3px 3px 0 #000, -1px -1px 0 #000;
+        }
+        .title-style-neon {
+            font-family: 'Arial Black', sans-serif;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
+        }
+        .title-style-retro {
+            font-family: 'Impact', sans-serif;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 4px 4px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
+        }
+        .title-style-vintage {
+            font-family: 'Georgia', serif;
+            font-style: italic;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        .title-style-modern {
+            font-family: 'Arial', sans-serif;
+            font-weight: 300;
+            letter-spacing: 5px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+        .title-style-glitch {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            animation: titleGlitch 0.3s infinite;
+        }
+        @keyframes titleGlitch {
+            0%, 100% { text-shadow: 2px 0 #ff0000, -2px 0 #00ffff; transform: translate(0); }
+            25% { text-shadow: -2px 0 #ff0000, 2px 0 #00ffff; transform: translate(-2px, 1px); }
+            50% { text-shadow: 2px 2px #ff0000, -2px -2px #00ffff; transform: translate(1px, -1px); }
+            75% { text-shadow: -2px -2px #ff0000, 2px 2px #00ffff; transform: translate(-1px, 2px); }
+        }
         .control-panel {
             background: var(--panel-bg);
             border: 2px solid #333;
             border-radius: 8px;
             padding: 1.5rem;
         }
-
         .panel-title {
             color: var(--vhs-green);
             border-bottom: 1px solid #333;
@@ -298,7 +323,6 @@
             font-weight: bold;
             letter-spacing: 2px;
         }
-
         .effect-toggle {
             background: #2a2a2a;
             border: 2px solid #444;
@@ -315,37 +339,30 @@
             align-items: center;
             justify-content: space-between;
         }
-
         .effect-toggle:hover { border-color: #666; color: #fff; }
-
         .effect-toggle.active {
             background: linear-gradient(180deg, #00aa00 0%, #005500 100%);
             border-color: var(--vhs-green);
             color: #fff;
             box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
         }
-
         .effect-toggle .status-dot {
             width: 10px; height: 10px;
             border-radius: 50%;
             background: #555;
             transition: all 0.2s;
         }
-
         .effect-toggle.active .status-dot {
             background: var(--vhs-green);
             box-shadow: 0 0 8px var(--vhs-green);
         }
-
         .form-range::-webkit-slider-thumb { background: var(--vhs-green); }
         .form-range::-moz-range-thumb { background: var(--vhs-green); }
-
         .intensity-label {
             color: var(--vhs-green);
             font-size: 0.85rem;
             font-weight: bold;
         }
-
         .action-btn {
             background: linear-gradient(180deg, #444 0%, #222 100%);
             border: 2px solid #555;
@@ -358,23 +375,18 @@
             width: 100%;
             margin-bottom: 0.5rem;
         }
-
         .action-btn:hover {
             background: linear-gradient(180deg, #555 0%, #333 100%);
             border-color: #777;
         }
-
         .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
         .action-btn.btn-export {
             background: linear-gradient(180deg, #aa0000 0%, #550000 100%);
             border-color: var(--vhs-red);
         }
-
         .action-btn.btn-export:hover {
             background: linear-gradient(180deg, #cc0000 0%, #770000 100%);
         }
-
         .recording-banner {
             position: absolute;
             top: 0; left: 0;
@@ -387,17 +399,14 @@
             z-index: 20;
             display: none;
         }
-
         .recording-banner.active {
             display: block;
             animation: recBannerBlink 1s infinite;
         }
-
         @keyframes recBannerBlink {
             0%, 50% { background: rgba(255, 0, 0, 0.9); }
             51%, 100% { background: rgba(200, 0, 0, 0.7); }
         }
-
         .preset-btn {
             background: #2a2a2a;
             border: 1px solid #444;
@@ -407,14 +416,11 @@
             font-family: 'Courier New', monospace;
             transition: all 0.2s;
         }
-
         .preset-btn:hover {
             background: #3a3a3a;
             border-color: var(--vhs-green);
             color: var(--vhs-green);
         }
-
-        /* ===== NUEVO: PANEL DE NAVEGACIÓN Y TIMELINE ===== */
         .navigation-panel {
             background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
             border: 2px solid var(--vhs-blue);
@@ -422,7 +428,6 @@
             padding: 1rem;
             margin-top: 1rem;
         }
-
         .navigation-panel-title {
             color: var(--vhs-blue);
             font-weight: bold;
@@ -433,7 +438,6 @@
             align-items: center;
             gap: 0.5rem;
         }
-
         .time-display {
             display: flex;
             justify-content: space-between;
@@ -441,17 +445,8 @@
             margin-bottom: 0.5rem;
             font-size: 0.85rem;
         }
-
-        .time-current {
-            color: var(--vhs-blue);
-            font-weight: bold;
-        }
-
-        .time-total {
-            color: #888;
-        }
-
-        /* Timeline */
+        .time-current { color: var(--vhs-blue); font-weight: bold; }
+        .time-total { color: #888; }
         .timeline-container {
             position: relative;
             height: 40px;
@@ -462,7 +457,6 @@
             cursor: pointer;
             overflow: hidden;
         }
-
         .timeline-range {
             position: absolute;
             top: 0;
@@ -473,7 +467,6 @@
             pointer-events: none;
             z-index: 2;
         }
-
         .timeline-progress {
             position: absolute;
             top: 0;
@@ -483,7 +476,6 @@
             pointer-events: none;
             z-index: 1;
         }
-
         .timeline-cursor {
             position: absolute;
             top: 0;
@@ -495,7 +487,6 @@
             z-index: 3;
             transition: left 0.1s linear;
         }
-
         .timeline-start-marker {
             position: absolute;
             top: 0;
@@ -506,7 +497,6 @@
             cursor: ew-resize;
             z-index: 4;
         }
-
         .timeline-start-marker::before {
             content: "▼";
             position: absolute;
@@ -516,15 +506,12 @@
             color: var(--vhs-yellow);
             font-size: 12px;
         }
-
-        /* Botones de navegación */
         .nav-buttons {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 0.4rem;
             margin-bottom: 0.75rem;
         }
-
         .nav-btn {
             background: #2a2a2a;
             border: 2px solid #444;
@@ -538,31 +525,24 @@
             transition: all 0.2s;
             border-radius: 4px;
         }
-
         .nav-btn:hover {
             border-color: var(--vhs-blue);
             color: var(--vhs-blue);
             background: #3a3a3a;
         }
-
-        .nav-btn:active {
-            transform: scale(0.95);
-        }
-
+        .nav-btn:active { transform: scale(0.95); }
         .nav-btn i {
             display: block;
             font-size: 1rem;
             margin-bottom: 2px;
         }
-
-        /* Punto de inicio */
         .start-point-controls {
             display: flex;
             gap: 0.5rem;
             align-items: center;
             margin-bottom: 0.5rem;
+            flex-wrap: wrap;
         }
-
         .start-point-input {
             background: #1a1a1a;
             border: 2px solid #444;
@@ -574,13 +554,11 @@
             text-align: center;
             border-radius: 4px;
         }
-
         .start-point-input:focus {
             outline: none;
             border-color: var(--vhs-yellow);
             box-shadow: 0 0 8px rgba(255, 204, 0, 0.3);
         }
-
         .start-point-btn {
             background: linear-gradient(180deg, #aa8800 0%, #554400 100%);
             border: 2px solid var(--vhs-yellow);
@@ -594,17 +572,14 @@
             border-radius: 4px;
             white-space: nowrap;
         }
-
         .start-point-btn:hover {
             background: linear-gradient(180deg, #ccaa00 0%, #776600 100%);
         }
-
         .start-point-label {
             color: #aaa;
             font-size: 0.8rem;
             margin: 0;
         }
-
         .export-range-info {
             background: #1a1a1a;
             border: 1px solid #333;
@@ -614,24 +589,16 @@
             justify-content: space-between;
             align-items: center;
             font-size: 0.8rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
-
         .export-range-info .range-item {
             display: flex;
             align-items: center;
             gap: 0.3rem;
         }
-
-        .export-range-info .range-label {
-            color: #888;
-        }
-
-        .export-range-info .range-value {
-            color: var(--vhs-green);
-            font-weight: bold;
-        }
-
-        /* ===== PANEL DE VOLUMEN ===== */
+        .export-range-info .range-label { color: #888; }
+        .export-range-info .range-value { color: var(--vhs-green); font-weight: bold; }
         .volume-panel {
             background: #222;
             border: 2px solid #444;
@@ -639,7 +606,6 @@
             padding: 1rem;
             margin-bottom: 1rem;
         }
-
         .volume-panel-title {
             color: var(--vhs-blue);
             font-weight: bold;
@@ -650,23 +616,19 @@
             align-items: center;
             gap: 0.5rem;
         }
-
         .volume-row {
             display: flex;
             align-items: center;
             gap: 0.75rem;
             margin-bottom: 0.5rem;
         }
-
         .volume-row label {
             color: #aaa;
             font-size: 0.8rem;
             min-width: 90px;
             margin: 0;
         }
-
         .volume-row .form-range { flex: 1; }
-
         .volume-row .volume-value {
             color: var(--vhs-blue);
             font-weight: bold;
@@ -674,10 +636,8 @@
             min-width: 45px;
             text-align: right;
         }
-
         .volume-row .form-range::-webkit-slider-thumb { background: var(--vhs-blue); }
         .volume-row .form-range::-moz-range-thumb { background: var(--vhs-blue); }
-
         .volume-mute-btn {
             background: #2a2a2a;
             border: 1px solid #444;
@@ -689,19 +649,15 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-
         .volume-mute-btn:hover {
             border-color: var(--vhs-blue);
             color: var(--vhs-blue);
         }
-
         .volume-mute-btn.muted {
             background: #aa0000;
             border-color: var(--vhs-red);
             color: #fff;
         }
-
-        /* ===== PANEL DE FINALIZACIÓN PROFESIONAL ===== */
         .pro-panel {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             border: 2px solid var(--vhs-purple);
@@ -711,7 +667,6 @@
             position: relative;
             overflow: hidden;
         }
-
         .pro-panel::before {
             content: "PRO";
             position: absolute;
@@ -724,7 +679,6 @@
             border-radius: 3px;
             letter-spacing: 1px;
         }
-
         .pro-panel-title {
             color: var(--vhs-purple);
             font-weight: bold;
@@ -735,7 +689,6 @@
             align-items: center;
             gap: 0.5rem;
         }
-
         .fade-toggle {
             background: #2a2a2a;
             border: 2px solid #444;
@@ -753,28 +706,23 @@
             justify-content: space-between;
             border-radius: 4px;
         }
-
         .fade-toggle:hover { border-color: #666; color: #fff; }
-
         .fade-toggle.active {
             background: linear-gradient(180deg, #7733cc 0%, #441188 100%);
             border-color: var(--vhs-purple);
             color: #fff;
             box-shadow: 0 0 10px rgba(204, 102, 255, 0.3);
         }
-
         .fade-toggle .status-dot {
             width: 10px; height: 10px;
             border-radius: 50%;
             background: #555;
             transition: all 0.2s;
         }
-
         .fade-toggle.active .status-dot {
             background: var(--vhs-purple);
             box-shadow: 0 0 8px var(--vhs-purple);
         }
-
         .fade-options {
             display: none;
             margin-top: 0.5rem;
@@ -783,16 +731,13 @@
             border-radius: 4px;
             border: 1px solid #333;
         }
-
         .fade-options.show { display: block; }
-
         .fade-duration-btns {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 0.4rem;
             margin-bottom: 0.5rem;
         }
-
         .fade-duration-btn {
             background: #2a2a2a;
             border: 2px solid #444;
@@ -806,26 +751,21 @@
             transition: all 0.2s;
             border-radius: 4px;
         }
-
         .fade-duration-btn:hover {
             border-color: var(--vhs-purple);
             color: var(--vhs-purple);
         }
-
         .fade-duration-btn.active {
             background: linear-gradient(180deg, #7733cc 0%, #441188 100%);
             border-color: var(--vhs-purple);
             color: #fff;
         }
-
         .fade-label {
             color: #aaa;
             font-size: 0.75rem;
             margin-bottom: 0.3rem;
             display: block;
         }
-
-        /* ===== PANEL DE DURACIÓN ===== */
         .duration-panel {
             background: #222;
             border: 2px solid #444;
@@ -833,7 +773,6 @@
             padding: 1rem;
             margin-bottom: 1rem;
         }
-
         .duration-panel-title {
             color: var(--vhs-yellow);
             font-weight: bold;
@@ -844,14 +783,12 @@
             align-items: center;
             gap: 0.5rem;
         }
-
         .duration-presets {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 0.5rem;
             margin-bottom: 0.75rem;
         }
-
         .duration-preset-btn {
             background: #2a2a2a;
             border: 2px solid #444;
@@ -865,26 +802,21 @@
             transition: all 0.2s;
             border-radius: 4px;
         }
-
         .duration-preset-btn:hover {
             border-color: var(--vhs-yellow);
             color: var(--vhs-yellow);
         }
-
         .duration-preset-btn.active {
             background: linear-gradient(180deg, #aa8800 0%, #554400 100%);
             border-color: var(--vhs-yellow);
             color: #fff;
             box-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
         }
-
         .duration-preset-btn.whatsapp { border-color: #25D366; }
-
         .duration-preset-btn.whatsapp.active {
             background: linear-gradient(180deg, #25D366 0%, #128C7E 100%);
             border-color: #25D366;
         }
-
         .duration-preset-btn small {
             display: block;
             font-size: 0.65rem;
@@ -892,16 +824,13 @@
             margin-top: 2px;
             font-weight: normal;
         }
-
         .duration-preset-btn.active small { color: rgba(255,255,255,0.8); }
-
         .duration-custom {
             display: flex;
             align-items: center;
             gap: 0.5rem;
             margin-bottom: 0.75rem;
         }
-
         .duration-custom input {
             background: #1a1a1a;
             border: 2px solid #444;
@@ -913,19 +842,16 @@
             text-align: center;
             border-radius: 4px;
         }
-
         .duration-custom input:focus {
             outline: none;
             border-color: var(--vhs-yellow);
             box-shadow: 0 0 8px rgba(255, 204, 0, 0.3);
         }
-
         .duration-custom label {
             color: #aaa;
             font-size: 0.85rem;
             margin: 0;
         }
-
         .video-info-bar {
             background: #1a1a1a;
             border: 1px solid #333;
@@ -937,16 +863,13 @@
             font-size: 0.8rem;
             margin-bottom: 0.75rem;
         }
-
         .video-info-bar .info-item {
             display: flex;
             align-items: center;
             gap: 0.3rem;
         }
-
         .video-info-bar .info-label { color: #888; }
         .video-info-bar .info-value { color: var(--vhs-green); font-weight: bold; }
-
         .duration-warning {
             background: rgba(255, 100, 0, 0.15);
             border: 1px solid #ff6400;
@@ -957,10 +880,8 @@
             margin-bottom: 0.75rem;
             display: none;
         }
-
         .duration-warning.show { display: block; }
         .duration-warning i { margin-right: 0.3rem; }
-
         .export-summary {
             background: #1a1a1a;
             border: 1px solid #333;
@@ -969,29 +890,169 @@
             margin-bottom: 0.75rem;
             font-size: 0.8rem;
         }
-
         .export-summary .summary-row {
             display: flex;
             justify-content: space-between;
             margin-bottom: 0.25rem;
         }
-
         .export-summary .summary-row:last-child { margin-bottom: 0; }
         .export-summary .summary-label { color: #888; }
         .export-summary .summary-value { color: var(--vhs-yellow); font-weight: bold; }
-
+        .titles-panel {
+            background: linear-gradient(135deg, #2e1a1a 0%, #3e1616 100%);
+            border: 2px solid var(--vhs-orange);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .titles-panel::before {
+            content: "NEW";
+            position: absolute;
+            top: 5px; right: 10px;
+            background: var(--vhs-orange);
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 3px;
+            letter-spacing: 1px;
+        }
+        .titles-panel-title {
+            color: var(--vhs-orange);
+            font-weight: bold;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .title-input {
+            background: #1a1a1a;
+            border: 2px solid #444;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            padding: 0.6rem;
+            width: 100%;
+            border-radius: 4px;
+            margin-bottom: 0.75rem;
+            resize: vertical;
+            min-height: 60px;
+        }
+        .title-input:focus {
+            outline: none;
+            border-color: var(--vhs-orange);
+            box-shadow: 0 0 8px rgba(255, 136, 0, 0.3);
+        }
+        .title-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .title-option-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        .title-option-label {
+            color: #aaa;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .title-select {
+            background: #2a2a2a;
+            border: 2px solid #444;
+            color: #fff;
+            padding: 0.4rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .title-select:focus {
+            outline: none;
+            border-color: var(--vhs-orange);
+        }
+        .title-color-picker {
+            display: flex;
+            gap: 0.3rem;
+            flex-wrap: wrap;
+        }
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border: 2px solid #444;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .color-option:hover {
+            transform: scale(1.1);
+            border-color: #fff;
+        }
+        .color-option.active {
+            border-color: #fff;
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+        .title-mode-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .title-mode-btn {
+            flex: 1;
+            background: #2a2a2a;
+            border: 2px solid #444;
+            color: #aaa;
+            padding: 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 0.75rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 4px;
+        }
+        .title-mode-btn:hover {
+            border-color: var(--vhs-orange);
+            color: var(--vhs-orange);
+        }
+        .title-mode-btn.active {
+            background: linear-gradient(180deg, #cc6600 0%, #663300 100%);
+            border-color: var(--vhs-orange);
+            color: #fff;
+        }
+        .title-duration-input {
+            background: #1a1a1a;
+            border: 2px solid #444;
+            color: var(--vhs-orange);
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            padding: 0.4rem 0.6rem;
+            width: 80px;
+            text-align: center;
+            border-radius: 4px;
+        }
+        .title-duration-input:focus {
+            outline: none;
+            border-color: var(--vhs-orange);
+            box-shadow: 0 0 8px rgba(255, 136, 0, 0.3);
+        }
         .info-text {
             color: #888;
             font-size: 0.8rem;
         }
-
         @media (max-width: 991px) {
             .control-panel { margin-top: 1rem; }
             .duration-presets { grid-template-columns: repeat(2, 1fr); }
-            .fade-duration-btns { grid-template-columns: repeat(2, 1fr); }
+            .fade-duration-btns { grid-template-columns: repeat(3, 1fr); }
             .nav-buttons { grid-template-columns: repeat(4, 1fr); }
+            .title-options { grid-template-columns: 1fr; }
         }
-
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #1a1a1a; }
         ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
@@ -1037,7 +1098,7 @@
                         <i class="bi bi-record-circle"></i> GRABANDO EXPORTACIÓN...
                     </div>
 
-                    <video id="videoPlayer" crossorigin="anonymous" playsinline></video>
+                    <video id="videoPlayer" playsinline></video>
 
                     <div class="vhs-overlay scanlines-overlay" id="scanlinesOverlay"></div>
                     <div class="vhs-overlay noise-overlay" id="noiseOverlay"></div>
@@ -1047,21 +1108,21 @@
                     <div class="vhs-timestamp" id="timestampOverlay">PLAY  00:00:00</div>
                     <div class="rec-indicator" id="recIndicator">REC</div>
                     <div class="play-indicator" id="playIndicator">▶ PLAY</div>
+                    <div class="title-overlay" id="titleOverlay">
+                        <div class="title-text" id="titleText"></div>
+                    </div>
                 </div>
 
-                <!-- ===== NUEVO: PANEL DE NAVEGACIÓN ===== -->
                 <div class="navigation-panel" id="navigationPanel" style="display: none;">
                     <div class="navigation-panel-title">
                         <i class="bi bi-scissors"></i> NAVEGACIÓN Y PUNTO DE INICIO
                     </div>
 
-                    <!-- Time display -->
                     <div class="time-display">
                         <span class="time-current" id="timeCurrent">0:00</span>
                         <span class="time-total" id="timeTotal">/ 0:00</span>
                     </div>
 
-                    <!-- Timeline -->
                     <div class="timeline-container" id="timelineContainer">
                         <div class="timeline-range" id="timelineRange"></div>
                         <div class="timeline-progress" id="timelineProgress"></div>
@@ -1069,7 +1130,6 @@
                         <div class="timeline-start-marker" id="timelineStartMarker"></div>
                     </div>
 
-                    <!-- Navigation buttons -->
                     <div class="nav-buttons">
                         <button class="nav-btn" data-skip="-30">
                             <i class="bi bi-skip-backward-fill"></i>
@@ -1101,7 +1161,6 @@
                         </button>
                     </div>
 
-                    <!-- Start point controls -->
                     <div class="start-point-controls">
                         <label class="start-point-label">
                             <i class="bi bi-flag-fill" style="color: var(--vhs-yellow);"></i> Punto de inicio:
@@ -1113,7 +1172,6 @@
                         </button>
                     </div>
 
-                    <!-- Export range info -->
                     <div class="export-range-info">
                         <div class="range-item">
                             <span class="range-label">Desde:</span>
@@ -1226,8 +1284,93 @@
                         </div>
                     </div>
 
-                    <!-- PANEL DE VOLUMEN -->
+                    <!-- TÍTULOS -->
                     <div class="mt-4 pt-3 border-top border-secondary">
+                        <div class="titles-panel">
+                            <div class="titles-panel-title">
+                                <i class="bi bi-type"></i> TÍTULOS
+                            </div>
+
+                            <textarea class="title-input" id="titleInput" placeholder="Escribe tu título aquí..."></textarea>
+
+                            <div class="title-mode-toggle">
+                                <button class="title-mode-btn active" data-mode="intro">
+                                    <i class="bi bi-play-circle"></i> Intro
+                                </button>
+                                <button class="title-mode-btn" data-mode="fixed">
+                                    <i class="bi bi-pin-angle"></i> Fijo
+                                </button>
+                            </div>
+
+                            <div class="title-options">
+                                <div class="title-option-group">
+                                    <label class="title-option-label">Estilo:</label>
+                                    <select class="title-select" id="titleStyle">
+                                        <option value="classic">Clásico VHS</option>
+                                        <option value="neon">Neón</option>
+                                        <option value="retro">Retro</option>
+                                        <option value="vintage">Vintage</option>
+                                        <option value="modern">Moderno</option>
+                                        <option value="glitch">Glitch</option>
+                                    </select>
+                                </div>
+
+                                <div class="title-option-group">
+                                    <label class="title-option-label">Posición:</label>
+                                    <select class="title-select" id="titlePosition">
+                                        <option value="top">Arriba</option>
+                                        <option value="center">Centro</option>
+                                        <option value="bottom">Abajo</option>
+                                    </select>
+                                </div>
+
+                                <div class="title-option-group">
+                                    <label class="title-option-label">Tamaño:</label>
+                                    <select class="title-select" id="titleSize">
+                                        <option value="small">Pequeño</option>
+                                        <option value="medium" selected>Mediano</option>
+                                        <option value="large">Grande</option>
+                                        <option value="xlarge">Extra Grande</option>
+                                    </select>
+                                </div>
+
+                                <div class="title-option-group">
+                                    <label class="title-option-label">Color:</label>
+                                    <div class="title-color-picker" id="titleColorPicker">
+                                        <div class="color-option active" data-color="#ffffff" style="background: #ffffff;"></div>
+                                        <div class="color-option" data-color="#00ff00" style="background: #00ff00;"></div>
+                                        <div class="color-option" data-color="#ff0040" style="background: #ff0040;"></div>
+                                        <div class="color-option" data-color="#0080ff" style="background: #0080ff;"></div>
+                                        <div class="color-option" data-color="#ffcc00" style="background: #ffcc00;"></div>
+                                        <div class="color-option" data-color="#ff8800" style="background: #ff8800;"></div>
+                                        <div class="color-option" data-color="#cc66ff" style="background: #cc66ff;"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="titleDurationGroup">
+                                <label class="title-option-label">Duración de intro:</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="number" class="title-duration-input" id="titleDuration" min="1" max="30" value="3">
+                                    <span style="color: #888; font-size: 0.8rem;">segundos</span>
+                                </div>
+                            </div>
+
+                            <div class="export-summary mt-3" style="border-color: #444;">
+                                <div class="summary-row">
+                                    <span class="summary-label">Título:</span>
+                                    <span class="summary-value" id="summaryTitle" style="color: #666;">Desactivado</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-label">Modo:</span>
+                                    <span class="summary-value" id="summaryTitleMode" style="color: #666;">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- VOLUMEN -->
+                    <div class="mt-3">
                         <div class="volume-panel">
                             <div class="volume-panel-title">
                                 <i class="bi bi-volume-up-fill"></i> VOLUMEN DE EXPORTACIÓN
@@ -1242,12 +1385,12 @@
                             </div>
                             <small class="info-text">
                                 <i class="bi bi-info-circle"></i>
-                                Independiente del volumen de preview. Afecta solo al video exportado.
+                                Independiente del volumen de preview.
                             </small>
                         </div>
                     </div>
 
-                    <!-- PANEL DE FINALIZACIÓN PROFESIONAL -->
+                    <!-- FADES -->
                     <div class="mt-3">
                         <div class="pro-panel">
                             <div class="pro-panel-title">
@@ -1266,10 +1409,6 @@
                                     <button class="fade-duration-btn" data-fade="in" data-duration="2">2s</button>
                                     <button class="fade-duration-btn" data-fade="in" data-duration="3">3s</button>
                                 </div>
-                                <small class="info-text">
-                                    <i class="bi bi-info-circle"></i>
-                                    El video aparecerá gradualmente desde negro.
-                                </small>
                             </div>
 
                             <button class="fade-toggle active" id="fadeOutToggle">
@@ -1285,16 +1424,12 @@
                                     <button class="fade-duration-btn" data-fade="out" data-duration="3">3s</button>
                                     <button class="fade-duration-btn" data-fade="out" data-duration="5">5s</button>
                                 </div>
-                                <small class="info-text">
-                                    <i class="bi bi-info-circle"></i>
-                                    El video se desvanecerá a negro + audio con fade out sincronizado.
-                                </small>
                             </div>
 
                             <div class="export-summary mt-3" style="border-color: #444;">
                                 <div class="summary-row">
                                     <span class="summary-label">Fade In:</span>
-                                    <span class="summary-value" id="summaryFadeIn" style="color: var(--vhs-purple);">Desactivado</span>
+                                    <span class="summary-value" id="summaryFadeIn" style="color: #666;">Desactivado</span>
                                 </div>
                                 <div class="summary-row">
                                     <span class="summary-label">Fade Out:</span>
@@ -1304,7 +1439,7 @@
                         </div>
                     </div>
 
-                    <!-- PANEL DE DURACIÓN -->
+                    <!-- DURACIÓN -->
                     <div class="mt-3">
                         <div class="duration-panel">
                             <div class="duration-panel-title">
@@ -1386,7 +1521,7 @@
                         </button>
                         <small class="info-text d-block mt-2">
                             <i class="bi bi-info-circle"></i> 
-                            Se grabará el video con todos los efectos, fades y volumen aplicados.
+                            Se grabará el video con todos los efectos, títulos, fades y volumen aplicados.
                         </small>
                         <div id="exportProgress" class="mt-2" style="display: none;">
                             <div class="progress" style="height: 20px; background: #222;">
@@ -1413,27 +1548,19 @@
                     <div class="row">
                         <div class="col-md-3 mb-3">
                             <h6 class="text-success">1. CARGA VIDEO</h6>
-                            <p class="info-text mb-0">
-                                Arrastra o selecciona. Procesamiento 100% local.
-                            </p>
+                            <p class="info-text mb-0">Arrastra o selecciona. 100% local.</p>
                         </div>
                         <div class="col-md-3 mb-3">
                             <h6 class="text-success">2. ELIGE INICIO</h6>
-                            <p class="info-text mb-0">
-                                Usa los botones de navegación o arrastra el marcador amarillo.
-                            </p>
+                            <p class="info-text mb-0">Usa los botones o arrastra el marcador.</p>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <h6 class="text-success">3. APLICA EFECTOS</h6>
-                            <p class="info-text mb-0">
-                                Activa efectos VHS, fades y ajusta volumen.
-                            </p>
+                            <h6 class="text-success">3. AGREGA TÍTULOS</h6>
+                            <p class="info-text mb-0">Texto con estilos VHS clásicos.</p>
                         </div>
                         <div class="col-md-3 mb-0">
                             <h6 class="text-success">4. EXPORTA</h6>
-                            <p class="info-text mb-0">
-                                Descarga el video profesional con todo aplicado.
-                            </p>
+                            <p class="info-text mb-0">Descarga el video profesional.</p>
                         </div>
                     </div>
                 </div>
@@ -1450,7 +1577,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // ===== ESTADO DE LA APLICACIÓN =====
+        // ===== ESTADO =====
         const state = {
             videoLoaded: false,
             videoDuration: 0,
@@ -1469,13 +1596,22 @@
             fadeOut: { enabled: true, duration: 2 },
             exportVolume: 100,
             exportMuted: false,
-            // NUEVO: Punto de inicio
             startPoint: 0,
             exportStartTime: 0,
-            exportEndTime: 0
+            exportEndTime: 0,
+            title: {
+                enabled: false,
+                text: '',
+                mode: 'intro',
+                style: 'classic',
+                position: 'top',
+                size: 'medium',
+                color: '#ffffff',
+                duration: 3
+            }
         };
 
-        // ===== ELEMENTOS DEL DOM =====
+        // ===== ELEMENTOS =====
         const video = document.getElementById('videoPlayer');
         const uploadArea = document.getElementById('uploadArea');
         const videoInput = document.getElementById('videoInput');
@@ -1499,209 +1635,11 @@
         function formatDurationLabel(seconds) {
             if (seconds >= 60) {
                 const mins = Math.floor(seconds / 60);
-                const secs = seconds % 60;
+                const secs = Math.floor(seconds % 60);
                 return secs > 0 ? `${mins}m ${secs}s` : `${mins}min`;
             }
-            return `${seconds}s`;
+            return `${Math.floor(seconds)}s`;
         }
-
-        // ===== ACTUALIZAR RESUMEN =====
-        function updateExportSummary() {
-            const summaryMode = document.getElementById('summaryMode');
-            const summaryDuration = document.getElementById('summaryDuration');
-            const videoOriginalDuration = document.getElementById('videoOriginalDuration');
-            const videoExportDuration = document.getElementById('videoExportDuration');
-            const videoInfoBar = document.getElementById('videoInfoBar');
-            const durationWarning = document.getElementById('durationWarning');
-
-            // Calcular duración efectiva
-            if (state.durationMode === 'full') {
-                state.effectiveDuration = state.videoDuration - state.startPoint;
-                summaryMode.textContent = 'Completo';
-            } else {
-                state.effectiveDuration = state.selectedDuration;
-                
-                if (state.durationMode === 'custom') {
-                    summaryMode.textContent = `Personalizado (${state.selectedDuration}s)`;
-                } else if (state.selectedDuration === 90) {
-                    summaryMode.textContent = 'WhatsApp (90s)';
-                } else {
-                    summaryMode.textContent = `Preset (${state.selectedDuration}s)`;
-                }
-            }
-
-            // Calcular rango de exportación
-            state.exportStartTime = state.startPoint;
-            state.exportEndTime = Math.min(state.startPoint + state.effectiveDuration, state.videoDuration);
-
-            // Verificar si el rango excede el video
-            if (state.startPoint + state.effectiveDuration > state.videoDuration) {
-                state.effectiveDuration = state.videoDuration - state.startPoint;
-                state.exportEndTime = state.videoDuration;
-                durationWarning.classList.add('show');
-            } else {
-                durationWarning.classList.remove('show');
-            }
-
-            if (state.videoDuration > 0) {
-                videoInfoBar.style.display = 'flex';
-                videoOriginalDuration.textContent = formatTime(state.videoDuration);
-                videoExportDuration.textContent = formatTime(state.effectiveDuration);
-                summaryDuration.textContent = formatDurationLabel(state.effectiveDuration);
-            } else {
-                videoInfoBar.style.display = 'none';
-                summaryDuration.textContent = '--';
-            }
-
-            // Actualizar rango visual
-            updateRangeInfo();
-            updateTimelineRange();
-            updateFadeSummary();
-        }
-
-        function updateRangeInfo() {
-            document.getElementById('rangeStart').textContent = formatTime(state.exportStartTime);
-            document.getElementById('rangeEnd').textContent = formatTime(state.exportEndTime);
-            document.getElementById('rangeDuration').textContent = formatDurationLabel(state.effectiveDuration);
-        }
-
-        function updateFadeSummary() {
-            const summaryFadeIn = document.getElementById('summaryFadeIn');
-            const summaryFadeOut = document.getElementById('summaryFadeOut');
-            
-            summaryFadeIn.textContent = state.fadeIn.enabled 
-                ? `${state.fadeIn.duration}s` 
-                : 'Desactivado';
-            summaryFadeIn.style.color = state.fadeIn.enabled 
-                ? 'var(--vhs-purple)' 
-                : '#666';
-                
-            summaryFadeOut.textContent = state.fadeOut.enabled 
-                ? `${state.fadeOut.duration}s` 
-                : 'Desactivado';
-            summaryFadeOut.style.color = state.fadeOut.enabled 
-                ? 'var(--vhs-purple)' 
-                : '#666';
-        }
-
-        // ===== NUEVO: TIMELINE Y NAVEGACIÓN =====
-        function updateTimeline() {
-            if (!state.videoLoaded) return;
-
-            const currentTime = video.currentTime;
-            const duration = state.videoDuration;
-            const progressPercent = (currentTime / duration) * 100;
-
-            // Actualizar cursor
-            document.getElementById('timelineCursor').style.left = progressPercent + '%';
-            document.getElementById('timelineProgress').style.width = progressPercent + '%';
-
-            // Actualizar time display
-            document.getElementById('timeCurrent').textContent = formatTime(currentTime);
-            document.getElementById('timeTotal').textContent = '/ ' + formatTime(duration);
-        }
-
-        function updateTimelineRange() {
-            if (!state.videoLoaded) return;
-
-            const duration = state.videoDuration;
-            const startPercent = (state.exportStartTime / duration) * 100;
-            const endPercent = (state.exportEndTime / duration) * 100;
-
-            const range = document.getElementById('timelineRange');
-            range.style.left = startPercent + '%';
-            range.style.width = (endPercent - startPercent) + '%';
-
-            // Actualizar marcador de inicio
-            document.getElementById('timelineStartMarker').style.left = startPercent + '%';
-        }
-
-        // Click en timeline para saltar
-        document.getElementById('timelineContainer').addEventListener('click', (e) => {
-            if (!state.videoLoaded) return;
-            
-            const rect = e.currentTarget.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const percent = x / rect.width;
-            const newTime = percent * state.videoDuration;
-            
-            video.currentTime = Math.max(0, Math.min(newTime, state.videoDuration));
-        });
-
-        // Arrastrar marcador de inicio
-        let isDraggingStart = false;
-        const startMarker = document.getElementById('timelineStartMarker');
-
-        startMarker.addEventListener('mousedown', (e) => {
-            isDraggingStart = true;
-            e.preventDefault();
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (!isDraggingStart || !state.videoLoaded) return;
-
-            const timeline = document.getElementById('timelineContainer');
-            const rect = timeline.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const percent = Math.max(0, Math.min(x / rect.width, 1));
-            const newStart = percent * state.videoDuration;
-
-            state.startPoint = newStart;
-            document.getElementById('startPointInput').value = Math.floor(newStart);
-            updateTimelineRange();
-            updateExportSummary();
-        });
-
-        document.addEventListener('mouseup', () => {
-            isDraggingStart = false;
-        });
-
-        // Botones de navegación
-        document.querySelectorAll('.nav-btn[data-skip]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (!state.videoLoaded) return;
-                
-                const skip = parseInt(btn.dataset.skip);
-                const newTime = Math.max(0, Math.min(video.currentTime + skip, state.videoDuration));
-                video.currentTime = newTime;
-            });
-        });
-
-        // Botón marcar inicio
-        document.getElementById('btnMarkStart').addEventListener('click', () => {
-            if (!state.videoLoaded) return;
-            
-            state.startPoint = video.currentTime;
-            document.getElementById('startPointInput').value = Math.floor(video.currentTime);
-            updateTimelineRange();
-            updateExportSummary();
-        });
-
-        // Input de punto de inicio
-        document.getElementById('startPointInput').addEventListener('change', (e) => {
-            if (!state.videoLoaded) return;
-            
-            const value = parseInt(e.target.value) || 0;
-            state.startPoint = Math.max(0, Math.min(value, state.videoDuration));
-            e.target.value = Math.floor(state.startPoint);
-            updateTimelineRange();
-            updateExportSummary();
-        });
-
-        // Botón aplicar inicio
-        document.getElementById('btnSetStart').addEventListener('click', () => {
-            if (!state.videoLoaded) return;
-            
-            const value = parseInt(document.getElementById('startPointInput').value) || 0;
-            state.startPoint = Math.max(0, Math.min(value, state.videoDuration));
-            document.getElementById('startPointInput').value = Math.floor(state.startPoint);
-            video.currentTime = state.startPoint;
-            updateTimelineRange();
-            updateExportSummary();
-        });
-
-        // Actualizar timeline durante reproducción
-        video.addEventListener('timeupdate', updateTimeline);
 
         // ===== CARGA DE VIDEO =====
         uploadArea.addEventListener('click', () => videoInput.click());
@@ -1719,37 +1657,59 @@
             e.preventDefault();
             uploadArea.classList.remove('dragover');
             const file = e.dataTransfer.files[0];
-            if (file && file.type.startsWith('video/')) loadVideo(file);
+            if (file && file.type.startsWith('video/')) {
+                loadVideo(file);
+            } else {
+                alert('Por favor selecciona un archivo de video válido');
+            }
         });
 
         videoInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
-            if (file) loadVideo(file);
+            if (file) {
+                if (file.type.startsWith('video/')) {
+                    loadVideo(file);
+                } else {
+                    alert('Por favor selecciona un archivo de video válido');
+                }
+            }
         });
 
         function loadVideo(file) {
+            // Limpiar video anterior
+            if (video.src) {
+                try { URL.revokeObjectURL(video.src); } catch(e) {}
+            }
+            
             const url = URL.createObjectURL(file);
             video.src = url;
             video.load();
             
-            video.addEventListener('loadedmetadata', () => {
+            video.onloadedmetadata = () => {
                 state.videoLoaded = true;
                 state.videoDuration = video.duration;
                 state.startPoint = 0;
+                
                 uploadArea.classList.add('hidden');
                 btnPlayPause.disabled = false;
                 btnStop.disabled = false;
                 btnChangeVideo.disabled = false;
                 btnExport.disabled = false;
+                
                 video.volume = volumeSlider.value / 100;
                 
-                // Mostrar panel de navegación
                 document.getElementById('navigationPanel').style.display = 'block';
-                document.getElementById('timeTotal').textContent = '/ ' + formatTime(video.duration);
+                document.getElementById('startPointInput').value = 0;
+                document.getElementById('startPointInput').max = Math.floor(video.duration);
                 
                 updateExportSummary();
                 updateTimeline();
-            }, { once: true });
+            };
+            
+            video.onerror = () => {
+                alert('Error al cargar el video. Intenta con otro archivo.');
+                uploadArea.classList.remove('hidden');
+            };
         }
 
         // ===== CONTROLES DE VIDEO =====
@@ -1771,7 +1731,11 @@
 
         btnChangeVideo.addEventListener('click', () => {
             video.pause();
-            video.src = '';
+            if (video.src) {
+                try { URL.revokeObjectURL(video.src); } catch(e) {}
+            }
+            video.removeAttribute('src');
+            video.load();
             videoInput.value = '';
             uploadArea.classList.remove('hidden');
             btnPlayPause.disabled = true;
@@ -1791,7 +1755,7 @@
             document.getElementById('volumeValue').textContent = e.target.value;
         });
 
-        // ===== TOGGLE DE EFECTOS =====
+        // ===== EFECTOS =====
         document.querySelectorAll('.effect-toggle').forEach(btn => {
             btn.addEventListener('click', () => {
                 const effect = btn.dataset.effect;
@@ -1836,7 +1800,7 @@
             applyEffects();
         });
 
-        // ===== PRESETS DE EFECTOS =====
+        // ===== PRESETS =====
         const presets = {
             light: ['scanlines', 'vignette'],
             classic: ['scanlines', 'noise', 'vignette', 'timestamp', 'chromatic'],
@@ -1862,7 +1826,195 @@
             });
         });
 
-        // ===== CONTROLES DE DURACIÓN =====
+        // ===== TIMELINE Y NAVEGACIÓN =====
+        function updateTimeline() {
+            if (!state.videoLoaded) return;
+
+            const currentTime = video.currentTime;
+            const duration = state.videoDuration;
+            const progressPercent = (currentTime / duration) * 100;
+
+            document.getElementById('timelineCursor').style.left = progressPercent + '%';
+            document.getElementById('timelineProgress').style.width = progressPercent + '%';
+
+            document.getElementById('timeCurrent').textContent = formatTime(currentTime);
+            document.getElementById('timeTotal').textContent = '/ ' + formatTime(duration);
+
+            updateTitlePreview();
+        }
+
+        function updateTimelineRange() {
+            if (!state.videoLoaded) return;
+
+            const duration = state.videoDuration;
+            const startPercent = (state.exportStartTime / duration) * 100;
+            const endPercent = (state.exportEndTime / duration) * 100;
+
+            const range = document.getElementById('timelineRange');
+            range.style.left = startPercent + '%';
+            range.style.width = (endPercent - startPercent) + '%';
+
+            document.getElementById('timelineStartMarker').style.left = startPercent + '%';
+        }
+
+        document.getElementById('timelineContainer').addEventListener('click', (e) => {
+            if (!state.videoLoaded) return;
+            
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const percent = x / rect.width;
+            const newTime = percent * state.videoDuration;
+            
+            video.currentTime = Math.max(0, Math.min(newTime, state.videoDuration));
+        });
+
+        let isDraggingStart = false;
+        const startMarker = document.getElementById('timelineStartMarker');
+
+        startMarker.addEventListener('mousedown', (e) => {
+            isDraggingStart = true;
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDraggingStart || !state.videoLoaded) return;
+
+            const timeline = document.getElementById('timelineContainer');
+            const rect = timeline.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const percent = Math.max(0, Math.min(x / rect.width, 1));
+            const newStart = percent * state.videoDuration;
+
+            state.startPoint = newStart;
+            document.getElementById('startPointInput').value = Math.floor(newStart);
+            updateTimelineRange();
+            updateExportSummary();
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDraggingStart = false;
+        });
+
+        document.querySelectorAll('.nav-btn[data-skip]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!state.videoLoaded) return;
+                
+                const skip = parseInt(btn.dataset.skip);
+                const newTime = Math.max(0, Math.min(video.currentTime + skip, state.videoDuration));
+                video.currentTime = newTime;
+            });
+        });
+
+        document.getElementById('btnMarkStart').addEventListener('click', () => {
+            if (!state.videoLoaded) return;
+            
+            state.startPoint = video.currentTime;
+            document.getElementById('startPointInput').value = Math.floor(video.currentTime);
+            updateTimelineRange();
+            updateExportSummary();
+        });
+
+        document.getElementById('startPointInput').addEventListener('change', (e) => {
+            if (!state.videoLoaded) return;
+            
+            const value = parseInt(e.target.value) || 0;
+            state.startPoint = Math.max(0, Math.min(value, state.videoDuration));
+            e.target.value = Math.floor(state.startPoint);
+            updateTimelineRange();
+            updateExportSummary();
+        });
+
+        document.getElementById('btnSetStart').addEventListener('click', () => {
+            if (!state.videoLoaded) return;
+            
+            const value = parseInt(document.getElementById('startPointInput').value) || 0;
+            state.startPoint = Math.max(0, Math.min(value, state.videoDuration));
+            document.getElementById('startPointInput').value = Math.floor(state.startPoint);
+            video.currentTime = state.startPoint;
+            updateTimelineRange();
+            updateExportSummary();
+        });
+
+        video.addEventListener('timeupdate', updateTimeline);
+
+        video.addEventListener('play', () => {
+            document.getElementById('playIndicator').classList.add('active');
+            document.getElementById('playIndicator').textContent = '▶ PLAY';
+        });
+
+        video.addEventListener('pause', () => {
+            document.getElementById('playIndicator').textContent = '❚❚ PAUSE';
+        });
+
+        // ===== RESUMEN =====
+        function updateExportSummary() {
+            const summaryMode = document.getElementById('summaryMode');
+            const summaryDuration = document.getElementById('summaryDuration');
+            const videoOriginalDuration = document.getElementById('videoOriginalDuration');
+            const videoExportDuration = document.getElementById('videoExportDuration');
+            const videoInfoBar = document.getElementById('videoInfoBar');
+            const durationWarning = document.getElementById('durationWarning');
+
+            if (state.durationMode === 'full') {
+                state.effectiveDuration = Math.max(0, state.videoDuration - state.startPoint);
+                summaryMode.textContent = 'Completo';
+            } else {
+                state.effectiveDuration = state.selectedDuration;
+                
+                if (state.durationMode === 'custom') {
+                    summaryMode.textContent = `Personalizado (${state.selectedDuration}s)`;
+                } else if (state.selectedDuration === 90) {
+                    summaryMode.textContent = 'WhatsApp (90s)';
+                } else {
+                    summaryMode.textContent = `Preset (${state.selectedDuration}s)`;
+                }
+            }
+
+            state.exportStartTime = state.startPoint;
+            state.exportEndTime = Math.min(state.startPoint + state.effectiveDuration, state.videoDuration);
+
+            if (state.videoDuration > 0 && state.startPoint + state.effectiveDuration > state.videoDuration) {
+                state.effectiveDuration = Math.max(0, state.videoDuration - state.startPoint);
+                state.exportEndTime = state.videoDuration;
+                durationWarning.classList.add('show');
+            } else {
+                durationWarning.classList.remove('show');
+            }
+
+            if (state.videoDuration > 0) {
+                videoInfoBar.style.display = 'flex';
+                videoOriginalDuration.textContent = formatTime(state.videoDuration);
+                videoExportDuration.textContent = formatTime(state.effectiveDuration);
+                summaryDuration.textContent = formatDurationLabel(state.effectiveDuration);
+            } else {
+                videoInfoBar.style.display = 'none';
+                summaryDuration.textContent = '--';
+            }
+
+            updateRangeInfo();
+            updateTimelineRange();
+            updateFadeSummary();
+            updateTitleSummary();
+        }
+
+        function updateRangeInfo() {
+            document.getElementById('rangeStart').textContent = formatTime(state.exportStartTime);
+            document.getElementById('rangeEnd').textContent = formatTime(state.exportEndTime);
+            document.getElementById('rangeDuration').textContent = formatDurationLabel(state.effectiveDuration);
+        }
+
+        function updateFadeSummary() {
+            const summaryFadeIn = document.getElementById('summaryFadeIn');
+            const summaryFadeOut = document.getElementById('summaryFadeOut');
+            
+            summaryFadeIn.textContent = state.fadeIn.enabled ? `${state.fadeIn.duration}s` : 'Desactivado';
+            summaryFadeIn.style.color = state.fadeIn.enabled ? 'var(--vhs-purple)' : '#666';
+                
+            summaryFadeOut.textContent = state.fadeOut.enabled ? `${state.fadeOut.duration}s` : 'Desactivado';
+            summaryFadeOut.style.color = state.fadeOut.enabled ? 'var(--vhs-purple)' : '#666';
+        }
+
+        // ===== DURACIÓN =====
         document.querySelectorAll('.duration-preset-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.duration-preset-btn').forEach(b => b.classList.remove('active'));
@@ -1872,7 +2024,7 @@
                 
                 if (durationValue === 'full') {
                     state.durationMode = 'full';
-                    state.selectedDuration = state.videoDuration - state.startPoint;
+                    state.selectedDuration = Math.max(0, state.videoDuration - state.startPoint);
                     document.getElementById('customDuration').value = '';
                 } else {
                     state.durationMode = 'preset';
@@ -1894,7 +2046,7 @@
             }
         });
 
-        // ===== CONTROLES DE FADE =====
+        // ===== FADES =====
         document.getElementById('fadeInToggle').addEventListener('click', () => {
             state.fadeIn.enabled = !state.fadeIn.enabled;
             document.getElementById('fadeInToggle').classList.toggle('active', state.fadeIn.enabled);
@@ -1928,7 +2080,7 @@
             });
         });
 
-        // ===== CONTROLES DE VOLUMEN DE EXPORTACIÓN =====
+        // ===== VOLUMEN EXPORTACIÓN =====
         const exportVolumeSlider = document.getElementById('exportVolumeSlider');
         const exportVolumeValue = document.getElementById('exportVolumeValue');
         const exportMuteBtn = document.getElementById('exportMuteBtn');
@@ -1958,7 +2110,119 @@
             }
         });
 
-        // ===== TIMESTAMP DINÁMICO =====
+        // ===== TÍTULOS =====
+        function updateTitleSummary() {
+            const summaryTitle = document.getElementById('summaryTitle');
+            const summaryTitleMode = document.getElementById('summaryTitleMode');
+            
+            if (state.title.enabled && state.title.text.trim()) {
+                const shortText = state.title.text.substring(0, 20) + (state.title.text.length > 20 ? '...' : '');
+                summaryTitle.textContent = shortText;
+                summaryTitle.style.color = 'var(--vhs-orange)';
+                
+                if (state.title.mode === 'intro') {
+                    summaryTitleMode.textContent = `Intro (${state.title.duration}s)`;
+                } else {
+                    summaryTitleMode.textContent = 'Fijo';
+                }
+                summaryTitleMode.style.color = 'var(--vhs-orange)';
+            } else {
+                summaryTitle.textContent = 'Desactivado';
+                summaryTitle.style.color = '#666';
+                summaryTitleMode.textContent = '-';
+                summaryTitleMode.style.color = '#666';
+            }
+        }
+
+        function updateTitlePreview() {
+            const titleOverlay = document.getElementById('titleOverlay');
+            const titleText = document.getElementById('titleText');
+            
+            if (!state.title.enabled || !state.title.text.trim()) {
+                titleOverlay.classList.remove('active');
+                return;
+            }
+
+            const relativeTime = video.currentTime - state.startPoint;
+
+            if (state.title.mode === 'intro') {
+                if (relativeTime >= 0 && relativeTime < state.title.duration) {
+                    titleOverlay.classList.add('active');
+                } else {
+                    titleOverlay.classList.remove('active');
+                }
+            } else {
+                titleOverlay.classList.add('active');
+            }
+
+            titleText.className = 'title-text title-style-' + state.title.style;
+            titleText.style.color = state.title.color;
+            
+            const sizeMap = {
+                'small': '1.5rem',
+                'medium': '2.5rem',
+                'large': '3.5rem',
+                'xlarge': '5rem'
+            };
+            titleText.style.fontSize = sizeMap[state.title.size];
+
+            titleOverlay.className = 'title-overlay active position-' + state.title.position;
+            titleText.textContent = state.title.text;
+        }
+
+        document.getElementById('titleInput').addEventListener('input', (e) => {
+            state.title.text = e.target.value;
+            state.title.enabled = e.target.value.trim().length > 0;
+            updateTitlePreview();
+            updateTitleSummary();
+        });
+
+        document.querySelectorAll('.title-mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.title-mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                state.title.mode = btn.dataset.mode;
+                
+                document.getElementById('titleDurationGroup').style.display = 
+                    state.title.mode === 'intro' ? 'block' : 'none';
+                
+                updateTitlePreview();
+                updateTitleSummary();
+            });
+        });
+
+        document.getElementById('titleStyle').addEventListener('change', (e) => {
+            state.title.style = e.target.value;
+            updateTitlePreview();
+        });
+
+        document.getElementById('titlePosition').addEventListener('change', (e) => {
+            state.title.position = e.target.value;
+            updateTitlePreview();
+        });
+
+        document.getElementById('titleSize').addEventListener('change', (e) => {
+            state.title.size = e.target.value;
+            updateTitlePreview();
+        });
+
+        document.querySelectorAll('.color-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.color-option').forEach(o => o.classList.remove('active'));
+                option.classList.add('active');
+                state.title.color = option.dataset.color;
+                updateTitlePreview();
+            });
+        });
+
+        document.getElementById('titleDuration').addEventListener('change', (e) => {
+            state.title.duration = parseInt(e.target.value) || 3;
+            updateTitlePreview();
+            updateTitleSummary();
+        });
+
+        // ===== TIMESTAMP =====
         function updateTimestamp() {
             if (state.effects.timestamp) {
                 const time = video.currentTime || 0;
@@ -1971,18 +2235,13 @@
         }
         setInterval(updateTimestamp, 500);
 
-        video.addEventListener('play', () => {
-            document.getElementById('playIndicator').classList.add('active');
-            document.getElementById('playIndicator').textContent = '▶ PLAY';
-        });
-
-        video.addEventListener('pause', () => {
-            document.getElementById('playIndicator').textContent = '❚❚ PAUSE';
-        });
-
-        // ===== EXPORTAR VIDEO (CON PUNTO DE INICIO, FADES Y VOLUMEN) =====
+        // ===== EXPORTAR =====
         btnExport.addEventListener('click', async () => {
             if (!state.videoLoaded || state.isRecording) return;
+            if (state.effectiveDuration <= 0) {
+                alert('La duración de exportación es 0. Ajusta el punto de inicio o la duración.');
+                return;
+            }
 
             state.isRecording = true;
             btnExport.disabled = true;
@@ -1996,8 +2255,8 @@
             try {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
+                canvas.width = video.videoWidth || 1280;
+                canvas.height = video.videoHeight || 720;
 
                 const canvasStream = canvas.captureStream(30);
                 
@@ -2063,22 +2322,23 @@
                 };
 
                 function drawFrame() {
+                    if (!state.isRecording) return;
+                    
                     const relativeTime = video.currentTime - state.exportStartTime;
                     
-                    if (relativeTime >= exportDuration) {
+                    if (relativeTime >= exportDuration || video.ended) {
                         recorder.stop();
                         video.pause();
                         return;
                     }
 
-                    if (video.ended || video.paused) {
-                        if (video.ended) recorder.stop();
-                        return;
+                    if (video.paused && !video.ended) {
+                        // Si está pausado pero no terminó, continuar
                     }
 
                     const intensity = state.intensity / 100;
 
-                    // Calcular opacidad de fade
+                    // Calcular fade
                     let fadeOpacity = 0;
 
                     if (state.fadeIn.enabled && relativeTime < state.fadeIn.duration) {
@@ -2093,7 +2353,7 @@
                         }
                     }
 
-                    // Aplicar fade de audio
+                    // Audio fade
                     if (gainNode) {
                         let audioGain = baseVolume;
                         
@@ -2113,9 +2373,10 @@
                         gainNode.gain.value = Math.max(0, audioGain);
                     }
 
+                    // Dibujar video
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                    // Aplicar efectos VHS
+                    // Efectos VHS
                     if (state.effects.scanlines) {
                         ctx.fillStyle = `rgba(0, 0, 0, ${0.2 * intensity})`;
                         for (let y = 0; y < canvas.height; y += 4) {
@@ -2210,13 +2471,115 @@
                         ctx.fillText('● REC', 30, 50);
                     }
 
-                    // Aplicar fade
+                    // TÍTULO
+                    if (state.title.enabled && state.title.text.trim()) {
+                        let showTitle = false;
+                        
+                        if (state.title.mode === 'intro') {
+                            if (relativeTime >= 0 && relativeTime < state.title.duration) {
+                                showTitle = true;
+                            }
+                        } else {
+                            showTitle = true;
+                        }
+                        
+                        if (showTitle) {
+                            const sizeMap = {
+                                'small': canvas.width * 0.03,
+                                'medium': canvas.width * 0.05,
+                                'large': canvas.width * 0.07,
+                                'xlarge': canvas.width * 0.1
+                            };
+                            const fontSize = sizeMap[state.title.size];
+                            
+                            let fontFamily = 'Courier New';
+                            let fontStyle = 'bold';
+                            let textTransform = 'none';
+                            let letterSpacing = 0;
+                            
+                            switch(state.title.style) {
+                                case 'classic':
+                                    fontFamily = 'Courier New';
+                                    fontStyle = 'bold';
+                                    textTransform = 'uppercase';
+                                    letterSpacing = fontSize * 0.1;
+                                    break;
+                                case 'neon':
+                                    fontFamily = 'Arial Black';
+                                    fontStyle = '900';
+                                    textTransform = 'uppercase';
+                                    break;
+                                case 'retro':
+                                    fontFamily = 'Impact';
+                                    fontStyle = 'bold';
+                                    textTransform = 'uppercase';
+                                    letterSpacing = fontSize * 0.15;
+                                    break;
+                                case 'vintage':
+                                    fontFamily = 'Georgia';
+                                    fontStyle = 'bold italic';
+                                    break;
+                                case 'modern':
+                                    fontFamily = 'Arial';
+                                    fontStyle = '300';
+                                    letterSpacing = fontSize * 0.2;
+                                    break;
+                                case 'glitch':
+                                    fontFamily = 'Courier New';
+                                    fontStyle = 'bold';
+                                    textTransform = 'uppercase';
+                                    break;
+                            }
+                            
+                            let titleText = state.title.text;
+                            if (textTransform === 'uppercase') {
+                                titleText = titleText.toUpperCase();
+                            }
+                            
+                            ctx.font = `${fontStyle} ${fontSize}px ${fontFamily}`;
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            
+                            let titleY = canvas.height * 0.15;
+                            if (state.title.position === 'center') titleY = canvas.height * 0.5;
+                            else if (state.title.position === 'bottom') titleY = canvas.height * 0.85;
+                            
+                            const titleX = canvas.width / 2;
+                            
+                            // Sombra
+                            ctx.fillStyle = '#000';
+                            ctx.fillText(titleText, titleX + 3, titleY + 3);
+                            
+                            // Color principal
+                            ctx.fillStyle = state.title.color;
+                            
+                            // Efectos especiales por estilo
+                            if (state.title.style === 'neon') {
+                                ctx.shadowColor = state.title.color;
+                                ctx.shadowBlur = 20;
+                                ctx.fillText(titleText, titleX, titleY);
+                                ctx.shadowBlur = 0;
+                            } else if (state.title.style === 'glitch') {
+                                const offset = (Math.random() - 0.5) * 4;
+                                ctx.fillStyle = '#ff0000';
+                                ctx.fillText(titleText, titleX + offset, titleY);
+                                ctx.fillStyle = '#00ffff';
+                                ctx.fillText(titleText, titleX - offset, titleY);
+                                ctx.fillStyle = state.title.color;
+                                ctx.fillText(titleText, titleX, titleY);
+                            } else {
+                                ctx.fillText(titleText, titleX, titleY);
+                            }
+                        }
+                    }
+
+                    // Aplicar fade final
                     if (fadeOpacity > 0) {
                         ctx.fillStyle = `rgba(0, 0, 0, ${fadeOpacity})`;
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
                     }
 
-                    // Actualizar progreso
+                    // Progreso
                     if (exportDuration > 0) {
                         const progress = (relativeTime / exportDuration) * 100;
                         document.getElementById('exportProgressBar').style.width = Math.min(progress, 100) + '%';
@@ -2234,12 +2597,18 @@
 
                 recorder.start();
                 video.currentTime = state.exportStartTime;
-                await video.play();
-                drawFrame();
-
-                video.onended = () => {
-                    recorder.stop();
-                    video.onended = null;
+                
+                // Esperar a que el video esté listo
+                video.onseeked = () => {
+                    video.play().then(() => {
+                        drawFrame();
+                    }).catch(err => {
+                        console.error('Error al reproducir:', err);
+                        alert('Error al iniciar la reproducción para exportar');
+                        state.isRecording = false;
+                        btnExport.disabled = false;
+                        document.getElementById('recordingBanner').classList.remove('active');
+                    });
                 };
 
             } catch (err) {
@@ -2252,6 +2621,7 @@
             }
         });
 
+        // Inicialización
         video.volume = 0.8;
         updateExportSummary();
     </script>
