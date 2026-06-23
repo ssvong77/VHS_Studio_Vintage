@@ -1100,7 +1100,6 @@
         .quality-info strong {
             color: var(--vhs-green);
         }
-        /* NUEVO: Indicador de FPS y modo rendimiento */
         .perf-indicator {
             position: absolute;
             top: 10px;
@@ -1195,7 +1194,6 @@
                         <i class="bi bi-record-circle"></i> GRABANDO EXPORTACIÓN...
                     </div>
 
-                    <!-- NUEVO: Indicador de rendimiento -->
                     <div class="perf-indicator" id="perfIndicator">
                         <span id="perfFps">--</span> FPS
                         <span class="perf-mode-badge" id="perfModeBadge">MODO RENDIMIENTO</span>
@@ -1706,13 +1704,11 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // ===== DETECCIÓN DE DISPOSITIVO =====
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
                          || window.innerWidth < 768;
         
         console.log('Dispositivo:', isMobile ? 'MÓVIL' : 'DESKTOP');
 
-        // ===== ESTADO =====
         const state = {
             videoLoaded: false,
             videoDuration: 0,
@@ -1755,12 +1751,11 @@
                 fps: 24,
                 bitrate: 2500000
             },
-            // NUEVO: Estado de rendimiento
             performance: {
-                performanceMode: false,  // Modo rendimiento activado
-                currentFps: 0,           // FPS medido en tiempo real
-                frameDrops: 0,           // Contador de frames saltados
-                heavyMode: false         // Muchos efectos activos
+                performanceMode: false,
+                currentFps: 0,
+                frameDrops: 0,
+                heavyMode: false
             }
         };
 
@@ -1775,7 +1770,6 @@
             state.quality = { ...state.quality, ...qualityPresets.medium };
         }
 
-        // ===== ELEMENTOS =====
         const video = document.getElementById('videoPlayer');
         const uploadArea = document.getElementById('uploadArea');
         const videoInput = document.getElementById('videoInput');
@@ -1790,7 +1784,6 @@
         const perfFps = document.getElementById('perfFps');
         const perfModeBadge = document.getElementById('perfModeBadge');
 
-        // ===== UTILIDADES =====
         function formatTime(seconds) {
             if (!seconds || isNaN(seconds)) return '0:00';
             const s = Math.floor(seconds);
@@ -1808,7 +1801,6 @@
             return `${Math.floor(seconds)}s`;
         }
 
-        // ===== CARGA DE VIDEO =====
         uploadArea.addEventListener('click', () => videoInput.click());
 
         uploadArea.addEventListener('dragover', (e) => {
@@ -1886,7 +1878,6 @@
             };
         }
 
-        // ===== CONTROLES DE VIDEO =====
         btnPlayPause.addEventListener('click', () => {
             if (video.paused) {
                 video.play();
@@ -1929,7 +1920,6 @@
             document.getElementById('volumeValue').textContent = e.target.value;
         });
 
-        // ===== EFECTOS =====
         document.querySelectorAll('.effect-toggle').forEach(btn => {
             btn.addEventListener('click', () => {
                 const effect = btn.dataset.effect;
@@ -1956,7 +1946,6 @@
             timestampOverlay.classList.toggle('active', state.effects.timestamp);
             document.getElementById('recIndicator').classList.toggle('active', state.effects.rec);
 
-            // Construir filtro combinado
             let filters = [];
             if (state.effects.chromatic) {
                 const offset = Math.round(intensity * 4);
@@ -1981,7 +1970,6 @@
             applyEffects();
         });
 
-        // ===== PRESETS =====
         const presets = {
             light: ['scanlines', 'vignette'],
             classic: ['scanlines', 'noise', 'vignette', 'timestamp', 'chromatic'],
@@ -2008,7 +1996,6 @@
             });
         });
 
-        // ===== TIMELINE =====
         function updateTimeline() {
             if (!state.videoLoaded) return;
 
@@ -2128,7 +2115,6 @@
             document.getElementById('playIndicator').textContent = '❚❚ PAUSE';
         });
 
-        // ===== RESUMEN =====
         function updateExportSummary() {
             const summaryMode = document.getElementById('summaryMode');
             const summaryDuration = document.getElementById('summaryDuration');
@@ -2196,7 +2182,6 @@
             summaryFadeOut.style.color = state.fadeOut.enabled ? 'var(--vhs-purple)' : '#666';
         }
 
-        // ===== DURACIÓN =====
         document.querySelectorAll('.duration-preset-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.duration-preset-btn').forEach(b => b.classList.remove('active'));
@@ -2228,7 +2213,6 @@
             }
         });
 
-        // ===== FADES =====
         document.getElementById('fadeInToggle').addEventListener('click', () => {
             state.fadeIn.enabled = !state.fadeIn.enabled;
             document.getElementById('fadeInToggle').classList.toggle('active', state.fadeIn.enabled);
@@ -2262,7 +2246,6 @@
             });
         });
 
-        // ===== VOLUMEN =====
         const exportVolumeSlider = document.getElementById('exportVolumeSlider');
         const exportVolumeValue = document.getElementById('exportVolumeValue');
         const exportMuteBtn = document.getElementById('exportMuteBtn');
@@ -2292,7 +2275,6 @@
             }
         });
 
-        // ===== CALIDAD =====
         document.querySelectorAll('.quality-preset-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.quality-preset-btn').forEach(b => b.classList.remove('active'));
@@ -2311,7 +2293,6 @@
             });
         });
 
-        // ===== TÍTULOS =====
         function updateTitleSummary() {
             const summaryTitle = document.getElementById('summaryTitle');
             const summaryTitleMode = document.getElementById('summaryTitleMode');
@@ -2423,7 +2404,6 @@
             updateTitleSummary();
         });
 
-        // ===== TIMESTAMP =====
         function updateTimestamp() {
             if (state.effects.timestamp) {
                 const time = video.currentTime || 0;
@@ -2436,7 +2416,7 @@
         }
         setInterval(updateTimestamp, 500);
 
-        // ===== EXPORTAR (CON SINCRONIZACIÓN POR VIDEO.TIMECURRENT Y MODO RENDIMIENTO) =====
+        // ===== EXPORTAR (CON ctx.filter PARA APLICAR EFECTOS DE COLOR) =====
         btnExport.addEventListener('click', async () => {
             if (!state.videoLoaded || state.isRecording) return;
             if (state.effectiveDuration <= 0) {
@@ -2450,13 +2430,11 @@
             document.getElementById('recordingBanner').classList.add('active');
             document.getElementById('exportStatus').textContent = 'Preparando grabación...';
             
-            // Mostrar indicador de rendimiento
             perfIndicator.classList.add('active');
 
             const exportDuration = state.effectiveDuration;
             const baseVolume = state.exportMuted ? 0 : (state.exportVolume / 100);
             
-            // Calcular dimensiones del canvas respetando aspect ratio
             let canvasWidth, canvasHeight;
             const targetWidth = state.quality.width;
             const targetHeight = state.quality.height;
@@ -2475,7 +2453,6 @@
             console.log('Canvas:', canvasWidth + 'x' + canvasHeight, 
                        'Video:', state.videoWidth + 'x' + state.videoHeight);
 
-            // Resetear estado de rendimiento
             state.performance.performanceMode = false;
             state.performance.currentFps = 0;
             state.performance.frameDrops = 0;
@@ -2550,40 +2527,30 @@
                     document.getElementById('exportProgressBar').textContent = '100%';
                 };
 
-                // ===== SISTEMA DE SINCRONIZACIÓN POR VIDEO.TIMECURRENT =====
-                // Clave: el video.currentTime es el reloj maestro, no Date.now()
-                
-                // Contar efectos activos para determinar modo pesado
                 const activeEffectsCount = Object.values(state.effects).filter(v => v).length;
                 const heavyModeThreshold = isMobile ? 3 : 5;
                 state.performance.heavyMode = activeEffectsCount > heavyModeThreshold;
                 
-                // Cache para efectos costosos
                 let noiseImageData = null;
                 if (state.effects.noise) {
                     noiseImageData = ctx.createImageData(canvasWidth, canvasHeight);
                 }
                 
-                // Variables de sincronización
-                let lastVideoTime = -1;           // Último tiempo de video renderizado
-                let lastFrameTimestamp = 0;       // Timestamp del último frame
-                let fpsHistory = [];              // Historial de FPS para promedio
-                let fpsUpdateCounter = 0;         // Contador para actualizar display
+                let lastVideoTime = -1;
+                let lastFrameTimestamp = 0;
+                let fpsHistory = [];
+                let fpsUpdateCounter = 0;
                 const targetFrameInterval = 1000 / state.quality.fps;
-                
-                // ===== FUNCIÓN PRINCIPAL DE RENDERIZADO =====
-                // CLAVE: Se ejecuta en cada requestAnimationFrame pero usa video.currentTime como referencia
+
                 function drawFrame(timestamp) {
                     if (!state.isRecording) return;
                     
-                    // ===== MEDICIÓN DE FPS =====
                     if (lastFrameTimestamp > 0) {
                         const deltaMs = timestamp - lastFrameTimestamp;
                         const instantFps = 1000 / deltaMs;
                         fpsHistory.push(instantFps);
                         if (fpsHistory.length > 30) fpsHistory.shift();
                         
-                        // Actualizar display cada 10 frames
                         fpsUpdateCounter++;
                         if (fpsUpdateCounter >= 10) {
                             fpsUpdateCounter = 0;
@@ -2591,7 +2558,6 @@
                             state.performance.currentFps = avgFps;
                             perfFps.textContent = Math.round(avgFps);
                             
-                            // Cambiar color según rendimiento
                             perfIndicator.classList.remove('warning', 'critical');
                             if (avgFps < state.quality.fps * 0.6) {
                                 perfIndicator.classList.add('critical');
@@ -2599,7 +2565,6 @@
                                 perfIndicator.classList.add('warning');
                             }
                             
-                            // ACTIVAR MODO RENDIMIENTO si FPS cae mucho
                             if (avgFps < state.quality.fps * 0.7 && !state.performance.performanceMode) {
                                 state.performance.performanceMode = true;
                                 perfModeBadge.classList.add('active');
@@ -2609,21 +2574,16 @@
                     }
                     lastFrameTimestamp = timestamp;
                     
-                    // ===== OBTENER TIEMPO ACTUAL DEL VIDEO (RELOJ MAESTRO) =====
                     const videoTime = video.currentTime - state.exportStartTime;
                     
-                    // Si el video terminó
                     if (videoTime >= exportDuration || video.ended) {
                         recorder.stop();
                         video.pause();
                         return;
                     }
                     
-                    // ===== DETECCIÓN DE DESINCronización =====
-                    // Si el tiempo del video avanzó mucho desde el último frame renderizado,
-                    // significa que el renderizado va lento → activamos frame drop
                     const timeSinceLastRender = videoTime - lastVideoTime;
-                    const maxAcceptableDelta = (targetFrameInterval * 2.5) / 1000; // 2.5 frames
+                    const maxAcceptableDelta = (targetFrameInterval * 2.5) / 1000;
                     let frameDropped = false;
                     
                     if (lastVideoTime >= 0 && timeSinceLastRender > maxAcceptableDelta) {
@@ -2634,11 +2594,8 @@
                     lastVideoTime = videoTime;
                     
                     const intensity = state.intensity / 100;
-                    
-                    // ===== MODO RENDIMIENTO: reducir efectos costosos =====
                     const usePerformanceMode = state.performance.performanceMode || state.performance.heavyMode;
 
-                    // Calcular fade (siempre se aplica, es barato)
                     let fadeOpacity = 0;
                     if (state.fadeIn.enabled && videoTime < state.fadeIn.duration) {
                         fadeOpacity = 1 - (videoTime / state.fadeIn.duration);
@@ -2651,7 +2608,6 @@
                         }
                     }
 
-                    // Audio fade (siempre sincronizado con videoTime)
                     if (gainNode) {
                         let audioGain = baseVolume;
                         if (state.fadeIn.enabled && videoTime < state.fadeIn.duration) {
@@ -2666,34 +2622,31 @@
                         gainNode.gain.value = Math.max(0, audioGain);
                     }
 
-                    // ===== DIBUJAR FRAME DEL VIDEO =====
-                    // Este es el frame que SIEMPRE se dibuja (sincronizado al video)
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                    // ===== APLICAR EFECTOS VHS (con optimizaciones en modo rendimiento) =====
+                    // ===== CORRECCIÓN CLAVE: Usar ctx.filter para aplicar efectos de color =====
+                    // Los filtros CSS del elemento <video> NO se transfieren al canvas
+                    // Debemos aplicar los filtros directamente en el contexto del canvas
+                    let canvasFilters = [];
                     
-                    // Sepia (overlay barato)
                     if (state.effects.sepia) {
-                        ctx.fillStyle = `rgba(112, 66, 20, ${0.35 * intensity})`;
-                        ctx.globalCompositeOperation = 'multiply';
-                        ctx.fillRect(0, 0, canvas.width, canvas.height);
-                        ctx.globalCompositeOperation = 'source-over';
-                        
-                        ctx.fillStyle = `rgba(255, 200, 100, ${0.1 * intensity})`;
-                        ctx.globalCompositeOperation = 'screen';
-                        ctx.fillRect(0, 0, canvas.width, canvas.height);
-                        ctx.globalCompositeOperation = 'source-over';
+                        canvasFilters.push(`sepia(${0.85 * intensity}) saturate(${0.6 * intensity + (1 - intensity)}) contrast(${1 + 0.15 * intensity}) brightness(${1 - 0.1 * intensity})`);
                     }
-
-                    // Color fade (overlay barato)
+                    
                     if (state.effects.colorfade) {
-                        ctx.fillStyle = `rgba(100, 80, 60, ${0.15 * intensity})`;
-                        ctx.globalCompositeOperation = 'multiply';
-                        ctx.fillRect(0, 0, canvas.width, canvas.height);
-                        ctx.globalCompositeOperation = 'source-over';
+                        canvasFilters.push(`saturate(${0.5 * intensity + (1 - intensity)}) sepia(${0.3 * intensity}) contrast(${1 + 0.1 * intensity}) brightness(${1 - 0.05 * intensity})`);
                     }
+                    
+                    // Aplicar los filtros al canvas ANTES de dibujar el video
+                    ctx.filter = canvasFilters.length > 0 ? canvasFilters.join(' ') : 'none';
+                    
+                    // Dibujar video con los filtros aplicados
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    // Resetear filtro para que los overlays no se vean afectados
+                    ctx.filter = 'none';
 
-                    // Scanlines (ajustado en modo rendimiento)
+                    // ===== EFECTOS DE OVERLAY (no usan ctx.filter) =====
+                    
+                    // Scanlines
                     if (state.effects.scanlines) {
                         const scanlineStep = usePerformanceMode ? 6 : 4;
                         const scanlineHeight = usePerformanceMode ? 1 : 2;
@@ -2703,9 +2656,8 @@
                         }
                     }
 
-                    // Noise (MUY optimizado en modo rendimiento)
+                    // Noise
                     if (state.effects.noise && noiseImageData) {
-                        // En modo rendimiento: actualizar cada 4 frames, con step mayor
                         const shouldUpdate = !usePerformanceMode || (fpsUpdateCounter % 4 === 0);
                         
                         if (shouldUpdate) {
@@ -2724,7 +2676,7 @@
                         ctx.putImageData(noiseImageData, 0, 0);
                     }
 
-                    // Viñeta (siempre, es barata)
+                    // Viñeta
                     if (state.effects.vignette) {
                         const gradient = ctx.createRadialGradient(
                             canvas.width / 2, canvas.height / 2, canvas.width * 0.3,
@@ -2736,7 +2688,7 @@
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
                     }
 
-                    // Tracking shake (siempre, es barato)
+                    // Tracking shake
                     if (state.effects.trackingshake) {
                         const barHeight = 60;
                         const shakeY = (Math.random() - 0.5) * 5 * intensity;
@@ -2757,7 +2709,7 @@
                         ctx.restore();
                     }
 
-                    // Rolling bar (siempre, es barato)
+                    // Rolling bar
                     if (state.effects.rollingbar) {
                         const barHeight = 80;
                         const cycleTime = 8000;
@@ -2776,10 +2728,9 @@
                         ctx.fillRect(0, barY, canvas.width, barHeight);
                     }
 
-                    // Aberración cromática (SIMPLIFICADA en modo rendimiento)
+                    // Aberración cromática (overlay de color)
                     if (state.effects.chromatic) {
                         if (usePerformanceMode) {
-                            // Versión lite: solo overlay de color sin operaciones costosas
                             ctx.globalCompositeOperation = 'screen';
                             ctx.fillStyle = `rgba(255, 0, 0, ${0.1 * intensity})`;
                             ctx.fillRect(-2, 0, canvas.width, canvas.height);
@@ -2797,7 +2748,7 @@
                         }
                     }
 
-                    // Timestamp (siempre, es barato)
+                    // Timestamp
                     if (state.effects.timestamp) {
                         const time = video.currentTime;
                         const hrs = Math.floor(time / 3600).toString().padStart(2, '0');
@@ -2813,7 +2764,7 @@
                         ctx.fillText(text, canvas.width - textWidth - 30, canvas.height - 30);
                     }
 
-                    // REC (siempre, es barato)
+                    // REC
                     if (state.effects.rec) {
                         ctx.font = `bold ${Math.round(canvas.width * 0.025)}px Courier New`;
                         ctx.fillStyle = Math.floor(Date.now() / 500) % 2 ? '#ff0000' : '#aa0000';
@@ -2823,7 +2774,7 @@
                         ctx.fillText('● REC', 30, 50);
                     }
 
-                    // TÍTULO (solo si no estamos en frame drop crítico)
+                    // TÍTULO
                     if (state.title.enabled && state.title.text.trim()) {
                         let showTitle = false;
                         if (state.title.mode === 'intro') {
@@ -2832,7 +2783,6 @@
                             showTitle = true;
                         }
                         
-                        // En modo rendimiento crítico, saltar título en algunos frames
                         if (showTitle && !(usePerformanceMode && frameDropped)) {
                             const sizeMap = {
                                 'small': canvas.width * 0.03,
@@ -2892,13 +2842,12 @@
                         }
                     }
 
-                    // Fade final (siempre, es barato)
+                    // Fade final
                     if (fadeOpacity > 0) {
                         ctx.fillStyle = `rgba(0, 0, 0, ${fadeOpacity})`;
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
                     }
 
-                    // ===== ACTUALIZAR PROGRESO =====
                     if (exportDuration > 0) {
                         const progress = (videoTime / exportDuration) * 100;
                         document.getElementById('exportProgressBar').style.width = Math.min(progress, 100) + '%';
@@ -2914,9 +2863,6 @@
                         document.getElementById('exportStatus').textContent = statusText;
                     }
 
-                    // ===== SIGUIENTE FRAME =====
-                    // requestAnimationFrame se sincroniza con el refresh del display
-                    // pero el renderizado usa video.currentTime como referencia
                     requestAnimationFrame(drawFrame);
                 }
 
@@ -2947,12 +2893,12 @@
             }
         });
 
-        // ===== INICIALIZACIÓN =====
         video.volume = 0.8;
         updateExportSummary();
         
         console.log('VHS Effects Studio iniciado');
         console.log('Sistema de sincronización: video.currentTime (reloj maestro)');
+        console.log('Filtros de color: aplicados con ctx.filter (sepia, colorfade)');
         console.log('Modo rendimiento: automático si FPS < 70% del objetivo');
     </script>
 </body>
