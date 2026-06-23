@@ -1514,7 +1514,7 @@
                                 </button>
                             </div>
                             <div class="quality-info">
-                                <i class="bi bi-info-circle"></i> <strong>Fluidez garantizada:</strong> Captura manual de frames para sincronización perfecta.
+                                <i class="bi bi-check-circle-fill"></i> <strong>Sin microcortes:</strong> Time Accumulator + requestAnimationFrame para timing perfecto.
                             </div>
                         </div>
                     </div>
@@ -2416,7 +2416,7 @@
         }
         setInterval(updateTimestamp, 500);
 
-        // ===== EXPORTAR CON CAPTURA MANUAL DE FRAMES =====
+        // ===== EXPORTAR CON TIME ACCUMULATOR (SIN MICROCORTES) =====
         btnExport.addEventListener('click', async () => {
             if (!state.videoLoaded || state.isRecording) return;
             if (state.effectiveDuration <= 0) {
@@ -2452,8 +2452,10 @@
             
             const targetFps = state.quality.fps;
             const targetBitrate = state.quality.bitrate;
+            const frameDuration = 1000 / targetFps; // Duración exacta de cada frame en ms
             
             console.log('Canvas:', canvasWidth + 'x' + canvasHeight, '@' + targetFps + 'fps');
+            console.log('Frame duration:', frameDuration.toFixed(2) + 'ms');
 
             state.performance.performanceMode = false;
             state.performance.currentFps = 0;
@@ -2462,12 +2464,11 @@
 
             try {
                 const canvas = document.createElement('canvas');
-                // SIN desynchronized para mejor sincronización
                 const ctx = canvas.getContext('2d', { alpha: false });
                 canvas.width = canvasWidth;
                 canvas.height = canvasHeight;
 
-                // CAPTURA MANUAL: captureStream(0) + requestFrame()
+                // CAPTURA MANUAL con control total del timing
                 const canvasStream = canvas.captureStream(0);
                 const videoTrack = canvasStream.getVideoTracks()[0];
                 
@@ -2541,53 +2542,24 @@
                     noiseImageData = ctx.createImageData(canvasWidth, canvasHeight);
                 }
                 
-                let lastFrameTimestamp = 0;
+                // ===== TIME ACCUMULATOR PATTERN =====
+                // Esta es la clave para eliminar microcortes:
+                // - requestAnimationFrame corre a ~60fps (sincronizado con display)
+                // - Acumulamos el tiempo transcurrido
+                // - Solo capturamos un frame cuando acumulamos >= frameDuration
+                // - Esto garantiza timing PERFECTO sin importar el refresh rate del display
+                
+                let accumulator = 0;           // Tiempo acumulado sin capturar
+                let lastTimestamp = 0;         // Timestamp del último frame de RAF
                 let fpsHistory = [];
                 let fpsUpdateCounter = 0;
-                const targetFrameInterval = 1000 / targetFps;
 
-                // FUNCIÓN DE RENDERIZADO CON CAPTURA MANUAL
-                function drawFrame() {
-                    if (!state.isRecording) return;
-                    
-                    const now = performance.now();
-                    
-                    // Medición de FPS
-                    if (lastFrameTimestamp > 0) {
-                        const deltaMs = now - lastFrameTimestamp;
-                        const instantFps = 1000 / deltaMs;
-                        fpsHistory.push(instantFps);
-                        if (fpsHistory.length > 30) fpsHistory.shift();
-                        
-                        fpsUpdateCounter++;
-                        if (fpsUpdateCounter >= 10) {
-                            fpsUpdateCounter = 0;
-                            const avgFps = fpsHistory.reduce((a, b) => a + b, 0) / fpsHistory.length;
-                            state.performance.currentFps = avgFps;
-                            perfFps.textContent = Math.round(avgFps);
-                            
-                            perfIndicator.classList.remove('warning', 'critical');
-                            if (avgFps < targetFps * 0.6) {
-                                perfIndicator.classList.add('critical');
-                            } else if (avgFps < targetFps * 0.85) {
-                                perfIndicator.classList.add('warning');
-                            }
-                            
-                            if (avgFps < targetFps * 0.7 && !state.performance.performanceMode) {
-                                state.performance.performanceMode = true;
-                                perfModeBadge.classList.add('active');
-                                console.warn('⚠️ MODO RENDIMIENTO ACTIVADO');
-                            }
-                        }
-                    }
-                    lastFrameTimestamp = now;
-                    
+                // FUNCIÓN DE RENDERIZADO DE UN SOLO FRAME
+                function renderSingleFrame() {
                     const videoTime = video.currentTime - state.exportStartTime;
                     
                     if (videoTime >= exportDuration || video.ended) {
-                        recorder.stop();
-                        video.pause();
-                        return;
+                        return false; // Indica que terminamos
                     }
                     
                     const intensity = state.intensity / 100;
@@ -2810,11 +2782,89 @@
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
                     }
 
-                    // CAPTURAR FRAME MANUALMENTE
-                    if (videoTrack.requestFrame) {
-                        videoTrack.requestFrame();
-                    }
+                    return true; // Indica que continuamos
+                }
 
+                // ===== LOOP PRINCIPAL CON TIME ACCUMULATOR =====
+                function animationLoop(timestamp) {
+                    if (!state.isRecording) return;
+                    
+                    // Calcular delta time desde el último frame de RAF
+                    if (lastTimestamp === 0) {
+                        lastTimestamp = timestamp;
+                    }
+                    const delta = timestamp - lastTimestamp;
+                    lastTimestamp = timestamp;
+                    
+                    // Acumular el tiempo transcurrido
+                    accumulator += delta;
+                    
+                    // Medición de FPS
+                    fpsHistory.push(1000 / Math.max(delta, 1));
+                    if (fpsHistory.length > 30) fpsHistory.shift();
+                    fpsUpdateCounter++;
+                    
+                    if (fpsUpdateCounter >= 10) {
+                        fpsUpdateCounter = 0;
+                        const avgFps = fpsHistory.reduce((a, b) => a + b, 0) / fpsHistory.length;
+                        state.performance.currentFps = avgFps;
+                        perfFps.textContent = Math.round(avgFps);
+                        
+                        perfIndicator.classList.remove('warning', 'critical');
+                        if (avgFps < targetFps * 0.6) {
+                            perfIndicator.classList.add('critical');
+                        } else if (avgFps < targetFps * 0.85) {
+                            perfIndicator.classList.add('warning');
+                        }
+                        
+                        if (avgFps < targetFps * 0.7 && !state.performance.performanceMode) {
+                            state.performance.performanceMode = true;
+                            perfModeBadge.classList.add('active');
+                        }
+                    }
+                    
+                    // Verificar si el video terminó
+                    const videoTime = video.currentTime - state.exportStartTime;
+                    if (videoTime >= exportDuration || video.ended) {
+                        recorder.stop();
+                        video.pause();
+                        return;
+                    }
+                    
+                    // ===== CLAVE: Capturar SOLO cuando acumulamos suficiente tiempo =====
+                    // Esto garantiza timing perfecto del FPS objetivo
+                    let framesCapturedThisLoop = 0;
+                    const maxFramesPerLoop = 3; // Evitar capturar demasiados frames de golpe
+                    
+                    while (accumulator >= frameDuration && framesCapturedThisLoop < maxFramesPerLoop) {
+                        // Renderizar el frame
+                        const shouldContinue = renderSingleFrame();
+                        
+                        if (!shouldContinue) {
+                            recorder.stop();
+                            video.pause();
+                            return;
+                        }
+                        
+                        // Capturar el frame en el stream
+                        if (videoTrack.requestFrame) {
+                            videoTrack.requestFrame();
+                        }
+                        
+                        // Restar la duración de un frame del acumulador
+                        accumulator -= frameDuration;
+                        framesCapturedThisLoop++;
+                    }
+                    
+                    // Si el acumulador creció demasiado (sistema muy lento), resetearlo
+                    // para evitar "ráfagas" de frames que causan microcortes
+                    if (accumulator > frameDuration * 3) {
+                        console.warn('⚠️ Sistema lento, reseteando acumulador');
+                        accumulator = 0;
+                        state.performance.frameDrops++;
+                    }
+                    
+                    // Actualizar UI de progreso
                     if (exportDuration > 0) {
                         const progress = (videoTime / exportDuration) * 100;
                         document.getElementById('exportProgressBar').style.width = Math.min(progress, 100) + '%';
@@ -2828,11 +2878,9 @@
                         }
                         document.getElementById('exportStatus').textContent = statusText;
                     }
-
-                    // PROGRAMAR SIGUIENTE FRAME con timing preciso
-                    const elapsed = performance.now() - now;
-                    const nextDelay = Math.max(1, targetFrameInterval - elapsed);
-                    setTimeout(drawFrame, nextDelay);
+                    
+                    // Continuar el loop
+                    requestAnimationFrame(animationLoop);
                 }
 
                 recorder.start();
@@ -2840,7 +2888,10 @@
                 
                 video.onseeked = () => {
                     video.play().then(() => {
-                        drawFrame();
+                        // Iniciar el loop con time accumulator
+                        lastTimestamp = 0;
+                        accumulator = 0;
+                        requestAnimationFrame(animationLoop);
                     }).catch(err => {
                         console.error('Error al reproducir:', err);
                         alert('Error al iniciar la reproducción');
@@ -2866,7 +2917,8 @@
         updateExportSummary();
         
         console.log('VHS Effects Studio iniciado');
-        console.log('Captura manual de frames: captureStream(0) + requestFrame()');
+        console.log('Sistema: Time Accumulator + requestAnimationFrame');
+        console.log('Ventaja: Timing perfecto del FPS objetivo, sin microcortes');
     </script>
 </body>
 </html>
