@@ -1141,6 +1141,17 @@
             margin-left: 5px;
         }
         .perf-mode-badge.active { display: inline-block; }
+        .perf-res-badge {
+            display: none;
+            background: var(--vhs-blue);
+            color: #fff;
+            padding: 2px 6px;
+            font-size: 0.65rem;
+            font-weight: bold;
+            border-radius: 3px;
+            margin-left: 5px;
+        }
+        .perf-res-badge.active { display: inline-block; }
         @media (max-width: 991px) {
             .control-panel { margin-top: 1rem; }
             .duration-presets { grid-template-columns: repeat(2, 1fr); }
@@ -1197,6 +1208,7 @@
                     <div class="perf-indicator" id="perfIndicator">
                         <span id="perfFps">--</span> FPS
                         <span class="perf-mode-badge" id="perfModeBadge">MODO RENDIMIENTO</span>
+                        <span class="perf-res-badge" id="perfResBadge">RES REDUCIDA</span>
                     </div>
 
                     <video id="videoPlayer" playsinline></video>
@@ -1514,7 +1526,7 @@
                                 </button>
                             </div>
                             <div class="quality-info">
-                                <i class="bi bi-phone"></i> <strong>En móvil:</strong> Se recomienda "Media" para evitar desincronización audio/video.
+                                <i class="bi bi-phone"></i> <strong>En móvil:</strong> Con efectos de color (sepia/colorfade) se reduce automáticamente la resolución para evitar retardo.
                             </div>
                         </div>
                     </div>
@@ -1755,7 +1767,8 @@
                 performanceMode: false,
                 currentFps: 0,
                 frameDrops: 0,
-                heavyMode: false
+                heavyMode: false,
+                resolutionReduced: false
             }
         };
 
@@ -1783,6 +1796,7 @@
         const perfIndicator = document.getElementById('perfIndicator');
         const perfFps = document.getElementById('perfFps');
         const perfModeBadge = document.getElementById('perfModeBadge');
+        const perfResBadge = document.getElementById('perfResBadge');
 
         function formatTime(seconds) {
             if (!seconds || isNaN(seconds)) return '0:00';
@@ -1801,6 +1815,7 @@
             return `${Math.floor(seconds)}s`;
         }
 
+        // CARGA DE VIDEO
         uploadArea.addEventListener('click', () => videoInput.click());
 
         uploadArea.addEventListener('dragover', (e) => {
@@ -2416,7 +2431,12 @@
         }
         setInterval(updateTimestamp, 500);
 
-        // ===== EXPORTAR (CON ctx.filter PARA APLICAR EFECTOS DE COLOR) =====
+        // ===== NUEVA FUNCIÓN: Detectar si hay filtros de color activos =====
+        function hasColorFilters() {
+            return state.effects.sepia || state.effects.colorfade;
+        }
+
+        // ===== EXPORTAR (CON REDUCCIÓN AUTOMÁTICA DE RESOLUCIÓN EN MÓVIL) =====
         btnExport.addEventListener('click', async () => {
             if (!state.videoLoaded || state.isRecording) return;
             if (state.effectiveDuration <= 0) {
@@ -2435,9 +2455,29 @@
             const exportDuration = state.effectiveDuration;
             const baseVolume = state.exportMuted ? 0 : (state.exportVolume / 100);
             
+            // ===== CORRECCIÓN CLAVE: Reducción automática de resolución en móvil con filtros =====
+            let targetWidth = state.quality.width;
+            let targetHeight = state.quality.height;
+            let targetFps = state.quality.fps;
+            let targetBitrate = state.quality.bitrate;
+            let resolutionReduced = false;
+            
+            // Si es móvil Y hay filtros de color activos (sepia/colorfade), reducir resolución
+            if (isMobile && hasColorFilters()) {
+                // Reducir a 480p si estaba en 720p o superior
+                if (targetWidth > 854) {
+                    const aspect = targetWidth / targetHeight;
+                    targetWidth = 854;
+                    targetHeight = Math.round(targetWidth / aspect);
+                    targetFps = Math.min(targetFps, 20);
+                    targetBitrate = Math.min(targetBitrate, 1800000);
+                    resolutionReduced = true;
+                    console.warn('⚠️ RESOLUCIÓN REDUCIDA automáticamente por filtros de color en móvil');
+                    console.warn('   Nueva resolución:', targetWidth + 'x' + targetHeight, '@' + targetFps + 'fps');
+                }
+            }
+            
             let canvasWidth, canvasHeight;
-            const targetWidth = state.quality.width;
-            const targetHeight = state.quality.height;
             
             if (state.isPortrait) {
                 canvasHeight = targetWidth;
@@ -2451,20 +2491,26 @@
             canvasHeight = Math.floor(canvasHeight / 2) * 2;
             
             console.log('Canvas:', canvasWidth + 'x' + canvasHeight, 
-                       'Video:', state.videoWidth + 'x' + state.videoHeight);
+                       'Video:', state.videoWidth + 'x' + state.videoHeight,
+                       'Filtros color:', hasColorFilters() ? 'SÍ' : 'NO');
 
             state.performance.performanceMode = false;
             state.performance.currentFps = 0;
             state.performance.frameDrops = 0;
             state.performance.heavyMode = false;
+            state.performance.resolutionReduced = resolutionReduced;
+            
+            if (resolutionReduced) {
+                perfResBadge.classList.add('active');
+            }
 
             try {
                 const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
+                const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
                 canvas.width = canvasWidth;
                 canvas.height = canvasHeight;
 
-                const canvasStream = canvas.captureStream(state.quality.fps);
+                const canvasStream = canvas.captureStream(targetFps);
                 
                 let audioCtx = null;
                 let gainNode = null;
@@ -2494,7 +2540,7 @@
                     : 'video/webm';
                 const recorder = new MediaRecorder(canvasStream, { 
                     mimeType: mimeType,
-                    videoBitsPerSecond: state.quality.bitrate
+                    videoBitsPerSecond: targetBitrate
                 });
                 
                 const chunks = [];
@@ -2521,6 +2567,7 @@
                     btnExport.disabled = false;
                     document.getElementById('recordingBanner').classList.remove('active');
                     perfIndicator.classList.remove('active');
+                    perfResBadge.classList.remove('active');
                     document.getElementById('exportStatus').textContent = 
                         `¡Exportación completada! (FPS promedio: ${Math.round(state.performance.currentFps)})`;
                     document.getElementById('exportProgressBar').style.width = '100%';
@@ -2540,7 +2587,7 @@
                 let lastFrameTimestamp = 0;
                 let fpsHistory = [];
                 let fpsUpdateCounter = 0;
-                const targetFrameInterval = 1000 / state.quality.fps;
+                const targetFrameInterval = 1000 / targetFps;
 
                 function drawFrame(timestamp) {
                     if (!state.isRecording) return;
@@ -2559,13 +2606,13 @@
                             perfFps.textContent = Math.round(avgFps);
                             
                             perfIndicator.classList.remove('warning', 'critical');
-                            if (avgFps < state.quality.fps * 0.6) {
+                            if (avgFps < targetFps * 0.6) {
                                 perfIndicator.classList.add('critical');
-                            } else if (avgFps < state.quality.fps * 0.85) {
+                            } else if (avgFps < targetFps * 0.85) {
                                 perfIndicator.classList.add('warning');
                             }
                             
-                            if (avgFps < state.quality.fps * 0.7 && !state.performance.performanceMode) {
+                            if (avgFps < targetFps * 0.7 && !state.performance.performanceMode) {
                                 state.performance.performanceMode = true;
                                 perfModeBadge.classList.add('active');
                                 console.warn('⚠️ MODO RENDIMIENTO ACTIVADO - FPS bajo:', Math.round(avgFps));
@@ -2622,31 +2669,28 @@
                         gainNode.gain.value = Math.max(0, audioGain);
                     }
 
-                    // ===== CORRECCIÓN CLAVE: Usar ctx.filter para aplicar efectos de color =====
-                    // Los filtros CSS del elemento <video> NO se transfieren al canvas
-                    // Debemos aplicar los filtros directamente en el contexto del canvas
+                    // ===== APLICAR FILTROS DE COLOR AL CANVAS =====
                     let canvasFilters = [];
                     
                     if (state.effects.sepia) {
-                        canvasFilters.push(`sepia(${0.85 * intensity}) saturate(${0.6 * intensity + (1 - intensity)}) contrast(${1 + 0.15 * intensity}) brightness(${1 - 0.1 * intensity})`);
+                        // Filtro sepia optimizado
+                        canvasFilters.push(`sepia(${0.85 * intensity}) saturate(${1 - 0.4 * intensity}) contrast(${1 + 0.15 * intensity}) brightness(${1 - 0.1 * intensity})`);
                     }
                     
                     if (state.effects.colorfade) {
-                        canvasFilters.push(`saturate(${0.5 * intensity + (1 - intensity)}) sepia(${0.3 * intensity}) contrast(${1 + 0.1 * intensity}) brightness(${1 - 0.05 * intensity})`);
+                        canvasFilters.push(`saturate(${1 - 0.5 * intensity}) sepia(${0.3 * intensity}) contrast(${1 + 0.1 * intensity})`);
                     }
                     
-                    // Aplicar los filtros al canvas ANTES de dibujar el video
                     ctx.filter = canvasFilters.length > 0 ? canvasFilters.join(' ') : 'none';
                     
-                    // Dibujar video con los filtros aplicados
+                    // Dibujar video con filtros
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                     
-                    // Resetear filtro para que los overlays no se vean afectados
+                    // Resetear filtro
                     ctx.filter = 'none';
 
-                    // ===== EFECTOS DE OVERLAY (no usan ctx.filter) =====
+                    // ===== EFECTOS DE OVERLAY =====
                     
-                    // Scanlines
                     if (state.effects.scanlines) {
                         const scanlineStep = usePerformanceMode ? 6 : 4;
                         const scanlineHeight = usePerformanceMode ? 1 : 2;
@@ -2656,7 +2700,6 @@
                         }
                     }
 
-                    // Noise
                     if (state.effects.noise && noiseImageData) {
                         const shouldUpdate = !usePerformanceMode || (fpsUpdateCounter % 4 === 0);
                         
@@ -2676,7 +2719,6 @@
                         ctx.putImageData(noiseImageData, 0, 0);
                     }
 
-                    // Viñeta
                     if (state.effects.vignette) {
                         const gradient = ctx.createRadialGradient(
                             canvas.width / 2, canvas.height / 2, canvas.width * 0.3,
@@ -2688,7 +2730,6 @@
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
                     }
 
-                    // Tracking shake
                     if (state.effects.trackingshake) {
                         const barHeight = 60;
                         const shakeY = (Math.random() - 0.5) * 5 * intensity;
@@ -2709,7 +2750,6 @@
                         ctx.restore();
                     }
 
-                    // Rolling bar
                     if (state.effects.rollingbar) {
                         const barHeight = 80;
                         const cycleTime = 8000;
@@ -2728,7 +2768,6 @@
                         ctx.fillRect(0, barY, canvas.width, barHeight);
                     }
 
-                    // Aberración cromática (overlay de color)
                     if (state.effects.chromatic) {
                         if (usePerformanceMode) {
                             ctx.globalCompositeOperation = 'screen';
@@ -2748,7 +2787,6 @@
                         }
                     }
 
-                    // Timestamp
                     if (state.effects.timestamp) {
                         const time = video.currentTime;
                         const hrs = Math.floor(time / 3600).toString().padStart(2, '0');
@@ -2764,7 +2802,6 @@
                         ctx.fillText(text, canvas.width - textWidth - 30, canvas.height - 30);
                     }
 
-                    // REC
                     if (state.effects.rec) {
                         ctx.font = `bold ${Math.round(canvas.width * 0.025)}px Courier New`;
                         ctx.fillStyle = Math.floor(Date.now() / 500) % 2 ? '#ff0000' : '#aa0000';
@@ -2774,7 +2811,6 @@
                         ctx.fillText('● REC', 30, 50);
                     }
 
-                    // TÍTULO
                     if (state.title.enabled && state.title.text.trim()) {
                         let showTitle = false;
                         if (state.title.mode === 'intro') {
@@ -2842,7 +2878,6 @@
                         }
                     }
 
-                    // Fade final
                     if (fadeOpacity > 0) {
                         ctx.fillStyle = `rgba(0, 0, 0, ${fadeOpacity})`;
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -2859,6 +2894,9 @@
                         }
                         if (state.performance.performanceMode) {
                             statusText += ' ⚡';
+                        }
+                        if (resolutionReduced) {
+                            statusText += ' 📐';
                         }
                         document.getElementById('exportStatus').textContent = statusText;
                     }
@@ -2879,6 +2917,7 @@
                         btnExport.disabled = false;
                         document.getElementById('recordingBanner').classList.remove('active');
                         perfIndicator.classList.remove('active');
+                        perfResBadge.classList.remove('active');
                     });
                 };
 
@@ -2889,6 +2928,7 @@
                 btnExport.disabled = false;
                 document.getElementById('recordingBanner').classList.remove('active');
                 perfIndicator.classList.remove('active');
+                perfResBadge.classList.remove('active');
                 document.getElementById('exportStatus').textContent = 'Error en la exportación';
             }
         });
@@ -2897,9 +2937,7 @@
         updateExportSummary();
         
         console.log('VHS Effects Studio iniciado');
-        console.log('Sistema de sincronización: video.currentTime (reloj maestro)');
-        console.log('Filtros de color: aplicados con ctx.filter (sepia, colorfade)');
-        console.log('Modo rendimiento: automático si FPS < 70% del objetivo');
+        console.log('Optimización móvil: reducción automática de resolución con filtros de color');
     </script>
 </body>
 </html>
