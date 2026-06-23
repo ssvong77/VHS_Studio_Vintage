@@ -41,7 +41,6 @@
             border: 3px solid #333;
             border-radius: 8px;
             overflow: hidden;
-            aspect-ratio: 16/9;
             box-shadow: 0 0 30px rgba(0, 255, 0, 0.1);
         }
         .video-wrapper video {
@@ -216,19 +215,12 @@
             transition: opacity 0.3s;
         }
         .play-indicator.active { opacity: 1; }
-        .chromatic-aberration {
-            filter: drop-shadow(-2px 0 0 rgba(255, 0, 0, 0.7))
-                    drop-shadow(2px 0 0 rgba(0, 255, 255, 0.7));
-        }
         .shake-effect { animation: videoShake 0.15s infinite; }
         @keyframes videoShake {
             0%, 100% { transform: translate(0, 0); }
             25% { transform: translate(-1px, 1px); }
             50% { transform: translate(1px, -1px); }
             75% { transform: translate(-1px, -1px); }
-        }
-        .color-fade {
-            filter: saturate(0.5) sepia(0.3) contrast(1.1) brightness(0.95);
         }
         .glitch-effect { animation: glitchEffect 3s infinite; }
         @keyframes glitchEffect {
@@ -1041,7 +1033,6 @@
             color: #888;
             font-size: 0.8rem;
         }
-        /* NUEVO: Panel de calidad de exportación */
         .quality-panel {
             background: linear-gradient(135deg, #1a2e1a 0%, #163e16 100%);
             border: 2px solid var(--vhs-green);
@@ -1097,9 +1088,6 @@
         }
         .quality-preset-btn.active small {
             color: rgba(255,255,255,0.8);
-        }
-        .quality-preset-btn.recommended {
-            border-color: var(--vhs-yellow);
         }
         .quality-info {
             background: rgba(0,0,0,0.3);
@@ -1314,6 +1302,10 @@
                         <span><i class="bi bi-palette"></i> Color Desvanecido</span>
                         <span class="status-dot"></span>
                     </button>
+                    <button class="effect-toggle" data-effect="sepia">
+                        <span><i class="bi bi-film"></i> Sepia (Cinta Muy Antigua)</span>
+                        <span class="status-dot"></span>
+                    </button>
                     <button class="effect-toggle" data-effect="glitch">
                         <span><i class="bi bi-lightning"></i> Glitch</span>
                         <span class="status-dot"></span>
@@ -1334,6 +1326,7 @@
                             <button class="preset-btn" data-preset="classic">Clásico</button>
                             <button class="preset-btn" data-preset="heavy">Intenso</button>
                             <button class="preset-btn" data-preset="horror">Horror</button>
+                            <button class="preset-btn" data-preset="ancient">Muy Antiguo</button>
                             <button class="preset-btn" data-preset="subtitle-killer">Rompe Subtítulos</button>
                             <button class="preset-btn" data-preset="bad-tracking">Bad Tracking 90s</button>
                             <button class="preset-btn" data-preset="none">Ninguno</button>
@@ -1351,7 +1344,6 @@
                         </div>
                     </div>
 
-                    <!-- TÍTULOS -->
                     <div class="mt-4 pt-3 border-top border-secondary">
                         <div class="titles-panel">
                             <div class="titles-panel-title">
@@ -1436,7 +1428,6 @@
                         </div>
                     </div>
 
-                    <!-- VOLUMEN -->
                     <div class="mt-3">
                         <div class="volume-panel">
                             <div class="volume-panel-title">
@@ -1457,7 +1448,6 @@
                         </div>
                     </div>
 
-                    <!-- NUEVO: CALIDAD DE EXPORTACIÓN -->
                     <div class="mt-3">
                         <div class="quality-panel">
                             <div class="quality-panel-title">
@@ -1483,7 +1473,6 @@
                         </div>
                     </div>
 
-                    <!-- FADES -->
                     <div class="mt-3">
                         <div class="pro-panel">
                             <div class="pro-panel-title">
@@ -1532,7 +1521,6 @@
                         </div>
                     </div>
 
-                    <!-- DURACIÓN -->
                     <div class="mt-3">
                         <div class="duration-panel">
                             <div class="duration-panel-title">
@@ -1670,20 +1658,22 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // ===== DETECCIÓN DE DISPOSITIVO =====
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
                          || window.innerWidth < 768;
         
         console.log('Dispositivo:', isMobile ? 'MÓVIL' : 'DESKTOP');
 
-        // ===== ESTADO =====
         const state = {
             videoLoaded: false,
             videoDuration: 0,
+            videoWidth: 0,
+            videoHeight: 0,
+            videoAspect: 16/9,
+            isPortrait: false,
             effects: {
                 scanlines: false, noise: false, trackingshake: false,
                 rollingbar: false, chromatic: false, vignette: false,
-                shake: false, colorfade: false, glitch: false,
+                shake: false, colorfade: false, sepia: false, glitch: false,
                 timestamp: false, rec: false
             },
             intensity: 70,
@@ -1708,7 +1698,6 @@
                 color: '#ffffff',
                 duration: 3
             },
-            // NUEVO: Configuración de calidad
             quality: {
                 preset: 'medium',
                 width: 1280,
@@ -1718,38 +1707,17 @@
             }
         };
 
-        // ===== PRESETS DE CALIDAD =====
         const qualityPresets = {
-            low: {
-                width: 854,
-                height: 480,
-                fps: 15,
-                bitrate: 1500000,
-                label: 'Baja (480p · 15fps)'
-            },
-            medium: {
-                width: 1280,
-                height: 720,
-                fps: 24,
-                bitrate: 2500000,
-                label: 'Media (720p · 24fps)'
-            },
-            high: {
-                width: 1920,
-                height: 1080,
-                fps: 30,
-                bitrate: 5000000,
-                label: 'Alta (1080p · 30fps)'
-            }
+            low: { width: 848, height: 480, fps: 15, bitrate: 1500000, label: 'Baja (480p · 15fps)' },
+            medium: { width: 1280, height: 720, fps: 24, bitrate: 2500000, label: 'Media (720p · 24fps)' },
+            high: { width: 1920, height: 1080, fps: 30, bitrate: 5000000, label: 'Alta (1080p · 30fps)' }
         };
 
-        // En móvil, forzar calidad media por defecto
         if (isMobile) {
             state.quality.preset = 'medium';
             state.quality = { ...state.quality, ...qualityPresets.medium };
         }
 
-        // ===== ELEMENTOS =====
         const video = document.getElementById('videoPlayer');
         const uploadArea = document.getElementById('uploadArea');
         const videoInput = document.getElementById('videoInput');
@@ -1761,7 +1729,6 @@
         const intensitySlider = document.getElementById('intensitySlider');
         const timestampOverlay = document.getElementById('timestampOverlay');
 
-        // ===== UTILIDADES =====
         function formatTime(seconds) {
             if (!seconds || isNaN(seconds)) return '0:00';
             const s = Math.floor(seconds);
@@ -1779,7 +1746,7 @@
             return `${Math.floor(seconds)}s`;
         }
 
-        // ===== CARGA DE VIDEO =====
+        // CARGA DE VIDEO
         uploadArea.addEventListener('click', () => videoInput.click());
 
         uploadArea.addEventListener('dragover', (e) => {
@@ -1825,7 +1792,15 @@
             video.onloadedmetadata = () => {
                 state.videoLoaded = true;
                 state.videoDuration = video.duration;
+                state.videoWidth = video.videoWidth;
+                state.videoHeight = video.videoHeight;
+                state.videoAspect = video.videoWidth / video.videoHeight;
+                state.isPortrait = state.videoAspect < 1;
                 state.startPoint = 0;
+                
+                console.log('Video:', video.videoWidth + 'x' + video.videoHeight, 
+                           'Aspect:', state.videoAspect.toFixed(2),
+                           state.isPortrait ? '(VERTICAL)' : '(HORIZONTAL)');
                 
                 uploadArea.classList.add('hidden');
                 btnPlayPause.disabled = false;
@@ -1849,7 +1824,7 @@
             };
         }
 
-        // ===== CONTROLES DE VIDEO =====
+        // CONTROLES DE VIDEO
         btnPlayPause.addEventListener('click', () => {
             if (video.paused) {
                 video.play();
@@ -1892,7 +1867,7 @@
             document.getElementById('volumeValue').textContent = e.target.value;
         });
 
-        // ===== EFECTOS =====
+        // EFECTOS
         document.querySelectorAll('.effect-toggle').forEach(btn => {
             btn.addEventListener('click', () => {
                 const effect = btn.dataset.effect;
@@ -1919,16 +1894,23 @@
             timestampOverlay.classList.toggle('active', state.effects.timestamp);
             document.getElementById('recIndicator').classList.toggle('active', state.effects.rec);
 
-            video.classList.toggle('chromatic-aberration', state.effects.chromatic);
+            // Construir filtro combinado para chromatic, colorfade y sepia
+            let filters = [];
             if (state.effects.chromatic) {
                 const offset = Math.round(intensity * 4);
-                video.style.filter = `drop-shadow(-${offset}px 0 0 rgba(255, 0, 0, 0.7)) drop-shadow(${offset}px 0 0 rgba(0, 255, 255, 0.7))`;
-            } else if (!state.effects.colorfade) {
-                video.style.filter = '';
+                filters.push(`drop-shadow(-${offset}px 0 0 rgba(255, 0, 0, 0.7))`);
+                filters.push(`drop-shadow(${offset}px 0 0 rgba(0, 255, 255, 0.7))`);
             }
+            if (state.effects.colorfade) {
+                filters.push('saturate(0.5) sepia(0.3) contrast(1.1) brightness(0.95)');
+            }
+            if (state.effects.sepia) {
+                filters.push('sepia(0.85) saturate(0.6) contrast(1.15) brightness(0.9) hue-rotate(-10deg)');
+            }
+            
+            video.style.filter = filters.length > 0 ? filters.join(' ') : '';
 
             video.classList.toggle('shake-effect', state.effects.shake);
-            video.classList.toggle('color-fade', state.effects.colorfade);
             video.classList.toggle('glitch-effect', state.effects.glitch);
         }
 
@@ -1937,12 +1919,13 @@
             applyEffects();
         });
 
-        // ===== PRESETS =====
+        // PRESETS
         const presets = {
             light: ['scanlines', 'vignette'],
             classic: ['scanlines', 'noise', 'vignette', 'timestamp', 'chromatic'],
             heavy: ['scanlines', 'noise', 'trackingshake', 'rollingbar', 'vignette', 'timestamp', 'rec', 'chromatic', 'shake'],
             horror: ['scanlines', 'noise', 'trackingshake', 'rollingbar', 'vignette', 'glitch', 'colorfade', 'shake'],
+            ancient: ['sepia', 'scanlines', 'noise', 'vignette', 'colorfade', 'timestamp'],
             'subtitle-killer': ['rollingbar', 'trackingshake', 'noise', 'scanlines'],
             'bad-tracking': ['trackingshake', 'noise', 'scanlines', 'chromatic'],
             none: []
@@ -1963,7 +1946,7 @@
             });
         });
 
-        // ===== TIMELINE Y NAVEGACIÓN =====
+        // TIMELINE
         function updateTimeline() {
             if (!state.videoLoaded) return;
 
@@ -2083,7 +2066,7 @@
             document.getElementById('playIndicator').textContent = '❚❚ PAUSE';
         });
 
-        // ===== RESUMEN =====
+        // RESUMEN
         function updateExportSummary() {
             const summaryMode = document.getElementById('summaryMode');
             const summaryDuration = document.getElementById('summaryDuration');
@@ -2151,7 +2134,7 @@
             summaryFadeOut.style.color = state.fadeOut.enabled ? 'var(--vhs-purple)' : '#666';
         }
 
-        // ===== DURACIÓN =====
+        // DURACIÓN
         document.querySelectorAll('.duration-preset-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.duration-preset-btn').forEach(b => b.classList.remove('active'));
@@ -2183,7 +2166,7 @@
             }
         });
 
-        // ===== FADES =====
+        // FADES
         document.getElementById('fadeInToggle').addEventListener('click', () => {
             state.fadeIn.enabled = !state.fadeIn.enabled;
             document.getElementById('fadeInToggle').classList.toggle('active', state.fadeIn.enabled);
@@ -2217,7 +2200,7 @@
             });
         });
 
-        // ===== VOLUMEN EXPORTACIÓN =====
+        // VOLUMEN
         const exportVolumeSlider = document.getElementById('exportVolumeSlider');
         const exportVolumeValue = document.getElementById('exportVolumeValue');
         const exportMuteBtn = document.getElementById('exportMuteBtn');
@@ -2247,7 +2230,7 @@
             }
         });
 
-        // ===== NUEVO: CALIDAD DE EXPORTACIÓN =====
+        // CALIDAD
         document.querySelectorAll('.quality-preset-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.quality-preset-btn').forEach(b => b.classList.remove('active'));
@@ -2262,11 +2245,11 @@
                 state.quality.fps = preset.fps;
                 state.quality.bitrate = preset.bitrate;
                 
-                console.log('Calidad cambiada a:', preset.label);
+                console.log('Calidad:', preset.label);
             });
         });
 
-        // ===== TÍTULOS =====
+        // TÍTULOS
         function updateTitleSummary() {
             const summaryTitle = document.getElementById('summaryTitle');
             const summaryTitleMode = document.getElementById('summaryTitleMode');
@@ -2378,7 +2361,7 @@
             updateTitleSummary();
         });
 
-        // ===== TIMESTAMP =====
+        // TIMESTAMP
         function updateTimestamp() {
             if (state.effects.timestamp) {
                 const time = video.currentTime || 0;
@@ -2391,11 +2374,11 @@
         }
         setInterval(updateTimestamp, 500);
 
-        // ===== EXPORTAR (OPTIMIZADO PARA MÓVIL) =====
+        // ===== EXPORTAR (CORREGIDO) =====
         btnExport.addEventListener('click', async () => {
             if (!state.videoLoaded || state.isRecording) return;
             if (state.effectiveDuration <= 0) {
-                alert('La duración de exportación es 0. Ajusta el punto de inicio o la duración.');
+                alert('La duración de exportación es 0.');
                 return;
             }
 
@@ -2408,27 +2391,41 @@
             const exportDuration = state.effectiveDuration;
             const baseVolume = state.exportMuted ? 0 : (state.exportVolume / 100);
             
-            // Configuración de calidad
-            const canvasWidth = state.quality.width;
-            const canvasHeight = state.quality.height;
-            const exportFps = state.quality.fps;
-            const exportBitrate = state.quality.bitrate;
+            // CORRECCIÓN: Calcular dimensiones del canvas respetando aspect ratio del video
+            let canvasWidth, canvasHeight;
+            const targetWidth = state.quality.width;
+            const targetHeight = state.quality.height;
+            const targetAspect = targetWidth / targetHeight;
             
-            console.log('Exportando:', canvasWidth + 'x' + canvasHeight, '@' + exportFps + 'fps');
+            if (state.isPortrait) {
+                // Video vertical: canvas vertical
+                canvasHeight = targetWidth; // Usar el target width como height
+                canvasWidth = Math.round(canvasHeight * state.videoAspect);
+            } else {
+                // Video horizontal: canvas horizontal
+                canvasWidth = targetWidth;
+                canvasHeight = Math.round(canvasWidth / state.videoAspect);
+            }
+            
+            // Asegurar múltiplos de 2 para evitar problemas de codec
+            canvasWidth = Math.floor(canvasWidth / 2) * 2;
+            canvasHeight = Math.floor(canvasHeight / 2) * 2;
+            
+            console.log('Canvas:', canvasWidth + 'x' + canvasHeight, 
+                       'Video:', state.videoWidth + 'x' + state.videoHeight,
+                       'Aspect:', state.videoAspect.toFixed(2));
 
             try {
                 const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d', { alpha: false }); // alpha: false mejora rendimiento
+                const ctx = canvas.getContext('2d');
                 canvas.width = canvasWidth;
                 canvas.height = canvasHeight;
 
-                // IMPORTANTE: Usar el FPS configurado
-                const canvasStream = canvas.captureStream(exportFps);
+                const canvasStream = canvas.captureStream(state.quality.fps);
                 
                 let audioCtx = null;
                 let gainNode = null;
                 let sourceNode = null;
-                let combinedStream = canvasStream;
                 
                 try {
                     audioCtx = new AudioContext();
@@ -2445,17 +2442,16 @@
                     destination.stream.getAudioTracks().forEach(track => {
                         canvasStream.addTrack(track);
                     });
-                    combinedStream = canvasStream;
                 } catch (e) {
                     console.warn('No se pudo capturar audio:', e);
                 }
 
-                const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') 
-                    ? 'video/webm;codecs=vp9' 
+                const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp8') 
+                    ? 'video/webm;codecs=vp8' 
                     : 'video/webm';
-                const recorder = new MediaRecorder(combinedStream, { 
+                const recorder = new MediaRecorder(canvasStream, { 
                     mimeType: mimeType,
-                    videoBitsPerSecond: exportBitrate
+                    videoBitsPerSecond: state.quality.bitrate
                 });
                 
                 const chunks = [];
@@ -2486,24 +2482,22 @@
                     document.getElementById('exportProgressBar').textContent = '100%';
                 };
 
-                // ===== LOOP DE RENDERIZADO OPTIMIZADO =====
-                // Usar setTimeout en lugar de requestAnimationFrame para timing consistente
-                const frameInterval = 1000 / exportFps;
-                let lastFrameTime = 0;
-                let frameCount = 0;
-                let noiseImageData = null; // Cache para noise
-                
-                // Pre-generar noise pattern para evitar regenerarlo cada frame
+                // OPTIMIZACIÓN: Cache para efectos costosos
+                let noiseImageData = null;
                 if (state.effects.noise) {
                     noiseImageData = ctx.createImageData(canvasWidth, canvasHeight);
                 }
+                
+                let frameCount = 0;
+                let lastFrameTime = 0;
+                const frameInterval = 1000 / state.quality.fps;
 
                 function drawFrame(timestamp) {
                     if (!state.isRecording) return;
                     
-                    // Control de timing para mantener FPS consistente
-                    if (timestamp - lastFrameTime < frameInterval * 0.9) {
-                        setTimeout(() => drawFrame(performance.now()), frameInterval / 2);
+                    // Control de timing
+                    if (timestamp - lastFrameTime < frameInterval * 0.8) {
+                        requestAnimationFrame(drawFrame);
                         return;
                     }
                     lastFrameTime = timestamp;
@@ -2520,11 +2514,9 @@
 
                     // Calcular fade
                     let fadeOpacity = 0;
-
                     if (state.fadeIn.enabled && relativeTime < state.fadeIn.duration) {
                         fadeOpacity = 1 - (relativeTime / state.fadeIn.duration);
                     }
-
                     if (state.fadeOut.enabled) {
                         const fadeOutStart = exportDuration - state.fadeOut.duration;
                         if (relativeTime >= fadeOutStart) {
@@ -2536,27 +2528,49 @@
                     // Audio fade
                     if (gainNode) {
                         let audioGain = baseVolume;
-                        
                         if (state.fadeIn.enabled && relativeTime < state.fadeIn.duration) {
-                            const fadeInProgress = relativeTime / state.fadeIn.duration;
-                            audioGain = baseVolume * fadeInProgress;
+                            audioGain = baseVolume * (relativeTime / state.fadeIn.duration);
                         }
-                        
                         if (state.fadeOut.enabled) {
                             const fadeOutStart = exportDuration - state.fadeOut.duration;
                             if (relativeTime >= fadeOutStart) {
-                                const fadeOutProgress = (relativeTime - fadeOutStart) / state.fadeOut.duration;
-                                audioGain = baseVolume * (1 - fadeOutProgress);
+                                audioGain = baseVolume * (1 - (relativeTime - fadeOutStart) / state.fadeOut.duration);
                             }
                         }
-                        
                         gainNode.gain.value = Math.max(0, audioGain);
                     }
 
-                    // Dibujar video
+                    // Dibujar video (respeta aspect ratio automáticamente)
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                    // Efectos VHS (OPTIMIZADOS)
+                    // EFECTOS VHS OPTIMIZADOS
+                    // Contar efectos activos para ajustar rendimiento
+                    const activeEffectsCount = Object.values(state.effects).filter(v => v).length;
+                    const heavyMode = activeEffectsCount > 5;
+
+                    // Sepia (aplicado como overlay para evitar saturación de filtros)
+                    if (state.effects.sepia) {
+                        ctx.fillStyle = `rgba(112, 66, 20, ${0.35 * intensity})`;
+                        ctx.globalCompositeOperation = 'multiply';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.globalCompositeOperation = 'source-over';
+                        
+                        // Tono cálido
+                        ctx.fillStyle = `rgba(255, 200, 100, ${0.1 * intensity})`;
+                        ctx.globalCompositeOperation = 'screen';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.globalCompositeOperation = 'source-over';
+                    }
+
+                    // Color fade
+                    if (state.effects.colorfade) {
+                        ctx.fillStyle = `rgba(100, 80, 60, ${0.15 * intensity})`;
+                        ctx.globalCompositeOperation = 'multiply';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.globalCompositeOperation = 'source-over';
+                    }
+
+                    // Scanlines
                     if (state.effects.scanlines) {
                         ctx.fillStyle = `rgba(0, 0, 0, ${0.2 * intensity})`;
                         for (let y = 0; y < canvas.height; y += 4) {
@@ -2564,30 +2578,28 @@
                         }
                     }
 
-                    // NOISE OPTIMIZADO: Actualizar solo cada 3 frames en móvil
-                    if (state.effects.noise) {
-                        const shouldUpdateNoise = !isMobile || (frameCount % 3 === 0);
+                    // Noise OPTIMIZADO
+                    if (state.effects.noise && noiseImageData) {
+                        // En heavy mode, actualizar noise cada 2 frames
+                        const shouldUpdate = !heavyMode || (frameCount % 2 === 0);
                         
-                        if (shouldUpdateNoise && noiseImageData) {
+                        if (shouldUpdate) {
                             const data = noiseImageData.data;
-                            const noiseAmount = intensity * 30;
-                            // Reducir muestreo de píxeles en móvil
-                            const step = isMobile ? 80 : 40;
+                            const noiseAmount = intensity * 40;
+                            const step = heavyMode ? 120 : 60;
                             
                             for (let i = 0; i < data.length; i += step * 4) {
                                 const noise = (Math.random() - 0.5) * noiseAmount;
                                 data[i] = 128 + noise;
                                 data[i + 1] = 128 + noise;
                                 data[i + 2] = 128 + noise;
-                                data[i + 3] = 80;
+                                data[i + 3] = 60;
                             }
                         }
-                        
-                        if (noiseImageData) {
-                            ctx.putImageData(noiseImageData, 0, 0);
-                        }
+                        ctx.putImageData(noiseImageData, 0, 0);
                     }
 
+                    // Viñeta
                     if (state.effects.vignette) {
                         const gradient = ctx.createRadialGradient(
                             canvas.width / 2, canvas.height / 2, canvas.width * 0.3,
@@ -2599,10 +2611,10 @@
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
                     }
 
+                    // Tracking shake
                     if (state.effects.trackingshake) {
                         const barHeight = 60;
-                        const shakeAmount = 5 * intensity;
-                        const shakeY = (Math.random() - 0.5) * shakeAmount;
+                        const shakeY = (Math.random() - 0.5) * 5 * intensity;
                         const scaleY = 1 + (Math.random() - 0.5) * 0.1 * intensity;
                         
                         const gradient = ctx.createLinearGradient(0, canvas.height - barHeight + shakeY, 0, canvas.height + shakeY);
@@ -2620,6 +2632,7 @@
                         ctx.restore();
                     }
 
+                    // Rolling bar
                     if (state.effects.rollingbar) {
                         const barHeight = 80;
                         const cycleTime = 8000;
@@ -2638,6 +2651,18 @@
                         ctx.fillRect(0, barY, canvas.width, barHeight);
                     }
 
+                    // Aberración cromática (simple y eficiente)
+                    if (state.effects.chromatic) {
+                        const offset = Math.round(intensity * 3);
+                        ctx.globalCompositeOperation = 'screen';
+                        ctx.fillStyle = `rgba(255, 0, 0, ${0.15 * intensity})`;
+                        ctx.fillRect(-offset, 0, canvas.width, canvas.height);
+                        ctx.fillStyle = `rgba(0, 255, 255, ${0.15 * intensity})`;
+                        ctx.fillRect(offset, 0, canvas.width, canvas.height);
+                        ctx.globalCompositeOperation = 'source-over';
+                    }
+
+                    // Timestamp
                     if (state.effects.timestamp) {
                         const time = video.currentTime;
                         const hrs = Math.floor(time / 3600).toString().padStart(2, '0');
@@ -2653,6 +2678,7 @@
                         ctx.fillText(text, canvas.width - textWidth - 30, canvas.height - 30);
                     }
 
+                    // REC
                     if (state.effects.rec) {
                         ctx.font = `bold ${Math.round(canvas.width * 0.025)}px Courier New`;
                         ctx.fillStyle = Math.floor(Date.now() / 500) % 2 ? '#ff0000' : '#aa0000';
@@ -2665,11 +2691,8 @@
                     // TÍTULO
                     if (state.title.enabled && state.title.text.trim()) {
                         let showTitle = false;
-                        
                         if (state.title.mode === 'intro') {
-                            if (relativeTime >= 0 && relativeTime < state.title.duration) {
-                                showTitle = true;
-                            }
+                            if (relativeTime >= 0 && relativeTime < state.title.duration) showTitle = true;
                         } else {
                             showTitle = true;
                         }
@@ -2688,40 +2711,16 @@
                             let textTransform = 'none';
                             
                             switch(state.title.style) {
-                                case 'classic':
-                                    fontFamily = 'Courier New';
-                                    fontStyle = 'bold';
-                                    textTransform = 'uppercase';
-                                    break;
-                                case 'neon':
-                                    fontFamily = 'Arial Black';
-                                    fontStyle = '900';
-                                    textTransform = 'uppercase';
-                                    break;
-                                case 'retro':
-                                    fontFamily = 'Impact';
-                                    fontStyle = 'bold';
-                                    textTransform = 'uppercase';
-                                    break;
-                                case 'vintage':
-                                    fontFamily = 'Georgia';
-                                    fontStyle = 'bold italic';
-                                    break;
-                                case 'modern':
-                                    fontFamily = 'Arial';
-                                    fontStyle = '300';
-                                    break;
-                                case 'glitch':
-                                    fontFamily = 'Courier New';
-                                    fontStyle = 'bold';
-                                    textTransform = 'uppercase';
-                                    break;
+                                case 'classic': fontFamily = 'Courier New'; fontStyle = 'bold'; textTransform = 'uppercase'; break;
+                                case 'neon': fontFamily = 'Arial Black'; fontStyle = '900'; textTransform = 'uppercase'; break;
+                                case 'retro': fontFamily = 'Impact'; fontStyle = 'bold'; textTransform = 'uppercase'; break;
+                                case 'vintage': fontFamily = 'Georgia'; fontStyle = 'bold italic'; break;
+                                case 'modern': fontFamily = 'Arial'; fontStyle = '300'; break;
+                                case 'glitch': fontFamily = 'Courier New'; fontStyle = 'bold'; textTransform = 'uppercase'; break;
                             }
                             
                             let titleText = state.title.text;
-                            if (textTransform === 'uppercase') {
-                                titleText = titleText.toUpperCase();
-                            }
+                            if (textTransform === 'uppercase') titleText = titleText.toUpperCase();
                             
                             ctx.font = `${fontStyle} ${fontSize}px ${fontFamily}`;
                             ctx.textAlign = 'center';
@@ -2757,7 +2756,7 @@
                         }
                     }
 
-                    // Aplicar fade final
+                    // Fade final
                     if (fadeOpacity > 0) {
                         ctx.fillStyle = `rgba(0, 0, 0, ${fadeOpacity})`;
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -2777,9 +2776,7 @@
                     }
 
                     frameCount++;
-                    
-                    // Usar setTimeout para timing consistente (no requestAnimationFrame)
-                    setTimeout(() => drawFrame(performance.now()), frameInterval);
+                    requestAnimationFrame(drawFrame);
                 }
 
                 recorder.start();
@@ -2787,11 +2784,10 @@
                 
                 video.onseeked = () => {
                     video.play().then(() => {
-                        // Iniciar el loop con setTimeout (no requestAnimationFrame)
-                        setTimeout(() => drawFrame(performance.now()), frameInterval);
+                        requestAnimationFrame(drawFrame);
                     }).catch(err => {
                         console.error('Error al reproducir:', err);
-                        alert('Error al iniciar la reproducción para exportar');
+                        alert('Error al iniciar la reproducción');
                         state.isRecording = false;
                         btnExport.disabled = false;
                         document.getElementById('recordingBanner').classList.remove('active');
@@ -2813,7 +2809,6 @@
         updateExportSummary();
         
         console.log('VHS Effects Studio iniciado');
-        console.log('Dispositivo:', isMobile ? 'MÓVIL - Calidad media recomendada' : 'DESKTOP');
     </script>
 </body>
 </html>
