@@ -7,19 +7,15 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
-        :root {
-            --vhs-green: #00ff00; --vhs-red: #ff0040; --vhs-blue: #0080ff;
-            --vhs-yellow: #ffcc00; --vhs-purple: #cc66ff; --vhs-orange: #ff8800;
-            --bg-dark: #0a0a0a; --panel-bg: #1a1a1a;
-        }
+        :root { --vhs-green:#00ff00; --vhs-red:#ff0040; --vhs-blue:#0080ff; --vhs-yellow:#ffcc00; --vhs-purple:#cc66ff; --vhs-orange:#ff8800; --bg-dark:#0a0a0a; --panel-bg:#1a1a1a; }
         * { box-sizing: border-box; }
         body { background-color: var(--bg-dark); color: #fff; font-family: 'Courier New', monospace; min-height: 100vh; }
         .app-header { background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%); border-bottom: 2px solid #333; padding: 1rem 0; }
-        .app-title { color: var(--vhs-green); text-shadow: 2px 2px 0px rgba(255, 0, 0, 0.5), -2px -2px 0px rgba(0, 0, 255, 0.5); letter-spacing: 3px; font-weight: bold; }
-        .video-wrapper { position: relative; background: #000; border: 3px solid #333; border-radius: 8px; overflow: hidden; box-shadow: 0 0 30px rgba(0, 255, 0, 0.1); }
+        .app-title { color: var(--vhs-green); text-shadow: 2px 2px 0px rgba(255,0,0,0.5), -2px -2px 0px rgba(0,0,255,0.5); letter-spacing: 3px; font-weight: bold; }
+        .video-wrapper { position: relative; background: #000; border: 3px solid #333; border-radius: 8px; overflow: hidden; box-shadow: 0 0 30px rgba(0,255,0,0.1); }
         .video-wrapper video { width: 100%; height: 100%; object-fit: contain; display: block; }
-        .upload-area { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.85); border: 3px dashed #444; cursor: pointer; transition: all 0.3s; z-index: 10; }
-        .upload-area:hover, .upload-area.dragover { border-color: var(--vhs-green); background: rgba(0, 255, 0, 0.05); }
+        .upload-area { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); border: 3px dashed #444; cursor: pointer; transition: all 0.3s; z-index: 10; }
+        .upload-area:hover, .upload-area.dragover { border-color: var(--vhs-green); background: rgba(0,255,0,0.05); }
         .upload-area.hidden { display: none; }
         .upload-icon { font-size: 4rem; color: var(--vhs-green); margin-bottom: 1rem; }
         .vhs-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
@@ -67,7 +63,7 @@
         .panel-title { color: var(--vhs-green); border-bottom: 1px solid #333; padding-bottom: 0.5rem; margin-bottom: 1rem; font-weight: bold; letter-spacing: 2px; }
         .effect-toggle { background: #2a2a2a; border: 2px solid #444; color: #aaa; padding: 0.6rem 1rem; font-family: 'Courier New', monospace; font-weight: bold; text-transform: uppercase; font-size: 0.85rem; transition: all 0.2s; width: 100%; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between; }
         .effect-toggle:hover { border-color: #666; color: #fff; }
-        .effect-toggle.active { background: linear-gradient(180deg, #00aa00 0%, #005500 100%); border-color: var(--vhs-green); color: #fff; box-shadow: 0 0 10px rgba(0, 255, 0, 0.3); }
+        .effect-toggle.active { background: linear-gradient(180deg, #00aa00 0%, #005500 100%); border-color: var(--vhs-green); color: #fff; box-shadow: 0 0 10px rgba(0,255,0,0.3); }
         .effect-toggle .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #555; transition: all 0.2s; }
         .effect-toggle.active .status-dot { background: var(--vhs-green); box-shadow: 0 0 8px var(--vhs-green); }
         .form-range::-webkit-slider-thumb { background: var(--vhs-green); }
@@ -77,9 +73,9 @@
         .action-btn:hover { background: linear-gradient(180deg, #555 0%, #333 100%); border-color: #777; }
         .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .action-btn.btn-export { background: linear-gradient(180deg, #aa0000 0%, #550000 100%); border-color: var(--vhs-red); }
-        .recording-banner { position: absolute; top: 0; left: 0; width: 100%; background: rgba(255, 0, 0, 0.9); color: #fff; text-align: center; padding: 0.5rem; font-weight: bold; z-index: 20; display: none; }
+        .recording-banner { position: absolute; top: 0; left: 0; width: 100%; background: rgba(255,0,0,0.9); color: #fff; text-align: center; padding: 0.5rem; font-weight: bold; z-index: 20; display: none; }
         .recording-banner.active { display: block; animation: recBannerBlink 1s infinite; }
-        @keyframes recBannerBlink { 0%, 50% { background: rgba(255, 0, 0, 0.9); } 51%, 100% { background: rgba(200, 0, 0, 0.7); } }
+        @keyframes recBannerBlink { 0%, 50% { background: rgba(255,0,0,0.9); } 51%, 100% { background: rgba(200,0,0,0.7); } }
         .preset-btn { background: #2a2a2a; border: 1px solid #444; color: #ccc; padding: 0.4rem 0.8rem; font-size: 0.75rem; font-family: 'Courier New', monospace; transition: all 0.2s; }
         .preset-btn:hover { background: #3a3a3a; border-color: var(--vhs-green); color: var(--vhs-green); }
         .navigation-panel { background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%); border: 2px solid var(--vhs-blue); border-radius: 8px; padding: 1rem; margin-top: 1rem; }
@@ -88,8 +84,8 @@
         .time-current { color: var(--vhs-blue); font-weight: bold; }
         .time-total { color: #888; }
         .timeline-container { position: relative; height: 40px; background: #1a1a1a; border: 2px solid #444; border-radius: 4px; margin-bottom: 0.75rem; cursor: pointer; overflow: hidden; }
-        .timeline-range { position: absolute; top: 0; height: 100%; background: rgba(0, 255, 0, 0.2); border-left: 2px solid var(--vhs-green); border-right: 2px solid var(--vhs-green); pointer-events: none; z-index: 2; }
-        .timeline-progress { position: absolute; top: 0; left: 0; height: 100%; background: rgba(0, 128, 255, 0.3); pointer-events: none; z-index: 1; }
+        .timeline-range { position: absolute; top: 0; height: 100%; background: rgba(0,255,0,0.2); border-left: 2px solid var(--vhs-green); border-right: 2px solid var(--vhs-green); pointer-events: none; z-index: 2; }
+        .timeline-progress { position: absolute; top: 0; left: 0; height: 100%; background: rgba(0,128,255,0.3); pointer-events: none; z-index: 1; }
         .timeline-cursor { position: absolute; top: 0; width: 3px; height: 100%; background: var(--vhs-blue); box-shadow: 0 0 8px var(--vhs-blue); pointer-events: none; z-index: 3; transition: left 0.1s linear; }
         .timeline-start-marker { position: absolute; top: 0; width: 4px; height: 100%; background: var(--vhs-yellow); box-shadow: 0 0 10px var(--vhs-yellow); cursor: ew-resize; z-index: 4; }
         .timeline-start-marker::before { content: "▼"; position: absolute; top: -18px; left: 50%; transform: translateX(-50%); color: var(--vhs-yellow); font-size: 12px; }
@@ -141,7 +137,7 @@
         .video-info-bar { background: #1a1a1a; border: 1px solid #333; border-radius: 4px; padding: 0.5rem 0.75rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; margin-bottom: 0.75rem; }
         .video-info-bar .info-label { color: #888; }
         .video-info-bar .info-value { color: var(--vhs-green); font-weight: bold; }
-        .duration-warning { background: rgba(255, 100, 0, 0.15); border: 1px solid #ff6400; border-radius: 4px; padding: 0.5rem 0.75rem; color: #ffaa55; font-size: 0.75rem; margin-bottom: 0.75rem; display: none; }
+        .duration-warning { background: rgba(255,100,0,0.15); border: 1px solid #ff6400; border-radius: 4px; padding: 0.5rem 0.75rem; color: #ffaa55; font-size: 0.75rem; margin-bottom: 0.75rem; display: none; }
         .duration-warning.show { display: block; }
         .export-summary { background: #1a1a1a; border: 1px solid #333; border-radius: 4px; padding: 0.6rem 0.75rem; margin-bottom: 0.75rem; font-size: 0.8rem; }
         .export-summary .summary-row { display: flex; justify-content: space-between; margin-bottom: 0.25rem; }
@@ -172,13 +168,51 @@
         .perf-indicator.active { display: block; }
         .perf-mode-badge { display: none; background: var(--vhs-yellow); color: #000; padding: 2px 6px; font-size: 0.65rem; font-weight: bold; border-radius: 3px; margin-left: 5px; }
         .perf-mode-badge.active { display: inline-block; }
-        @media (max-width: 991px) { 
-            .control-panel { margin-top: 1rem; } 
-            .duration-presets, .quality-presets { grid-template-columns: repeat(2, 1fr); } 
-            .fade-duration-btns { grid-template-columns: repeat(3, 1fr); } 
-            .nav-buttons { grid-template-columns: repeat(4, 1fr); } 
-            .title-options { grid-template-columns: 1fr; } 
+        
+        .video-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 10, 10, 0.95);
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
         }
+        .video-modal.active { display: flex; }
+        .video-modal h3 { color: var(--vhs-green); margin: 0 0 10px 0; text-align: center; }
+        .video-modal p { color: #ccc; font-size: 14px; text-align: center; margin-bottom: 15px; max-width: 400px; line-height: 1.4; }
+        .video-modal video {
+            max-width: 100%;
+            max-height: 60vh;
+            border-radius: 8px;
+            border: 1px solid #444;
+            background: #000;
+        }
+        .video-modal .modal-buttons { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 500px; }
+        .video-modal .modal-buttons button,
+        .video-modal .modal-buttons a {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            text-transform: uppercase;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-modal-download { background: var(--vhs-green); color: #000; }
+        .btn-modal-open { background: var(--vhs-blue); color: #fff; }
+        .btn-modal-close { background: #6c757d; color: #fff; }
+        
+        @media (max-width: 991px) { .control-panel { margin-top: 1rem; } .duration-presets, .quality-presets { grid-template-columns: repeat(2, 1fr); } .fade-duration-btns { grid-template-columns: repeat(3, 1fr); } .nav-buttons { grid-template-columns: repeat(4, 1fr); } .title-options { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -207,10 +241,7 @@
                     </div>
                     <div class="recording-banner" id="recordingBanner"><i class="bi bi-record-circle"></i> GRABANDO...</div>
                     <div class="perf-indicator" id="perfIndicator"><span id="perfFps">--</span> FPS <span class="perf-mode-badge" id="perfModeBadge">MODO RENDIMIENTO</span></div>
-                    
-                    <!-- ⭐ CLAVE: crossorigin="anonymous" para permitir captura de audio -->
-                    <video id="videoPlayer" playsinline crossorigin="anonymous"></video>
-                    
+                    <video id="videoPlayer" playsinline></video>
                     <div class="vhs-overlay scanlines-overlay" id="scanlinesOverlay"></div>
                     <div class="vhs-overlay noise-overlay" id="noiseOverlay"></div>
                     <div class="vhs-overlay vignette-overlay" id="vignetteOverlay"></div>
@@ -224,10 +255,7 @@
 
                 <div class="navigation-panel" id="navigationPanel" style="display: none;">
                     <div class="navigation-panel-title"><i class="bi bi-scissors"></i> NAVEGACIÓN Y PUNTO DE INICIO</div>
-                    <div class="time-display">
-                        <span class="time-current" id="timeCurrent">0:00</span>
-                        <span class="time-total" id="timeTotal">/ 0:00</span>
-                    </div>
+                    <div class="time-display"><span class="time-current" id="timeCurrent">0:00</span><span class="time-total" id="timeTotal">/ 0:00</span></div>
                     <div class="timeline-container" id="timelineContainer">
                         <div class="timeline-range" id="timelineRange"></div>
                         <div class="timeline-progress" id="timelineProgress"></div>
@@ -430,7 +458,7 @@
                             <div class="export-summary">
                                 <div class="summary-row"><span class="summary-label">Modo:</span><span class="summary-value" id="summaryMode">WhatsApp (90s)</span></div>
                                 <div class="summary-row"><span class="summary-label">Duración:</span><span class="summary-value" id="summaryDuration">90s</span></div>
-                                <div class="summary-row"><span class="summary-label">Formato:</span><span class="summary-value" id="summaryFormat">MP4/WebM</span></div>
+                                <div class="summary-row"><span class="summary-label">Formato:</span><span class="summary-value" id="summaryFormat">WebM</span></div>
                             </div>
                         </div>
 
@@ -451,11 +479,20 @@
         </footer>
     </div>
 
+    <!-- ⭐ MODAL CON MÚLTIPLES OPCIONES DE DESCARGA -->
+    <div id="videoModal" class="video-modal">
+        <h3>🎬 ¡Video Listo!</h3>
+        <p>Si no se guardó automáticamente, <strong>mantén presionado el video</strong> y selecciona <em>"Añadir a Fotos"</em> o <em>"Guardar video"</em>.</p>
+        <video id="modalVideo" controls playsinline></video>
+        <div class="modal-buttons">
+            <a id="modalDownloadLink" href="#" download="video.webm" class="btn-modal-download"><i class="bi bi-download"></i> Descargar</a>
+            <a id="modalOpenLink" href="#" target="_blank" class="btn-modal-open"><i class="bi bi-box-arrow-up-right"></i> Abrir</a>
+            <button id="btnModalClose" class="btn-modal-close"><i class="bi bi-x-circle"></i> Cerrar</button>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // ================================================================
-        // VARIABLES GLOBALES
-        // ================================================================
         let exportCanvas = null;
         let exportCtx = null;
         let exportAnimationId = null;
@@ -464,18 +501,19 @@
         let recordedChunks = [];
         let autoStopTimeout = null;
         let audioCtx = null;
-        let audioDestination = null;
+        let audioStreamSource = null;
         let gainNode = null;
-        let sourceNode = null;
         let noiseImageData = null;
         let lastFrameTimestamp = 0;
         let fpsHistory = [];
         let fpsUpdateCounter = 0;
         let framesRendered = 0;
-        let videoSourceCreated = false;
+        let originalVideoVolume = 0.8;
+        let originalVideoMuted = false;
+        let currentBlobUrl = null;
+        let currentFileName = null;
 
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
-        console.log('🎬 Dispositivo:', isMobile ? 'MÓVIL' : 'DESKTOP');
 
         const state = {
             videoLoaded: false, videoDuration: 0, videoWidth: 0, videoHeight: 0,
@@ -519,7 +557,6 @@
             return `${Math.floor(s)}s`;
         }
 
-        // ============ CARGA DE VIDEO ============
         uploadArea.addEventListener('click', () => videoInput.click());
         uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
         uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
@@ -547,8 +584,6 @@
                 state.videoAspect = video.videoWidth / state.videoHeight;
                 state.isPortrait = state.videoAspect < 1;
                 state.startPoint = 0;
-                videoSourceCreated = false;
-                console.log('✅ Video cargado:', state.videoWidth + 'x' + state.videoHeight);
                 uploadArea.classList.add('hidden');
                 btnPlayPause.disabled = false; btnStop.disabled = false;
                 btnChangeVideo.disabled = false; btnExport.disabled = false;
@@ -559,7 +594,6 @@
             };
         }
 
-        // ============ CONTROLES ============
         btnPlayPause.addEventListener('click', () => {
             if (video.paused) { video.play(); btnPlayPause.innerHTML = '<i class="bi bi-pause-fill"></i> PAUSAR'; }
             else { video.pause(); btnPlayPause.innerHTML = '<i class="bi bi-play-fill"></i> REPRODUCIR'; }
@@ -574,13 +608,11 @@
             btnChangeVideo.disabled = true; btnExport.disabled = true;
             btnPlayPause.innerHTML = '<i class="bi bi-play-fill"></i> REPRODUCIR';
             state.videoLoaded = false; state.videoDuration = 0; state.startPoint = 0;
-            videoSourceCreated = false;
             document.getElementById('navigationPanel').style.display = 'none';
             updateExportSummary();
         });
         volumeSlider.addEventListener('input', (e) => { video.volume = e.target.value / 100; document.getElementById('volumeValue').textContent = e.target.value; });
 
-        // ============ EFECTOS ============
         document.querySelectorAll('.effect-toggle').forEach(btn => {
             btn.addEventListener('click', () => {
                 const effect = btn.dataset.effect;
@@ -627,7 +659,6 @@
             });
         });
 
-        // ============ TIMELINE ============
         function updateTimeline() {
             if (!state.videoLoaded) return;
             const p = (video.currentTime / state.videoDuration) * 100;
@@ -689,7 +720,6 @@
         video.addEventListener('play', () => { document.getElementById('playIndicator').classList.add('active'); document.getElementById('playIndicator').textContent = '▶ PLAY'; });
         video.addEventListener('pause', () => { document.getElementById('playIndicator').textContent = '❚❚ PAUSE'; });
 
-        // ============ RESUMEN ============
         function updateExportSummary() {
             const m = document.getElementById('summaryMode');
             const d = document.getElementById('summaryDuration');
@@ -716,10 +746,7 @@
                 document.getElementById('videoInfoBar').style.display = 'none';
                 d.textContent = '--';
             }
-            const mimes = ['video/mp4;codecs=h264', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
-            let fmt = 'WebM';
-            for (let t of mimes) if (MediaRecorder.isTypeSupported(t)) { fmt = t.includes('mp4') ? 'MP4' : 'WebM'; break; }
-            f.textContent = fmt;
+            f.textContent = 'WebM';
             document.getElementById('rangeStart').textContent = formatTime(state.exportStartTime);
             document.getElementById('rangeEnd').textContent = formatTime(state.exportEndTime);
             document.getElementById('rangeDuration').textContent = formatDurationLabel(state.effectiveDuration);
@@ -766,7 +793,6 @@
             });
         });
 
-        // ============ TÍTULOS ============
         function updateTitlePreview() {
             const o = document.getElementById('titleOverlay');
             const t = document.getElementById('titleText');
@@ -811,15 +837,10 @@
             }
         }, 500);
 
-        // ================================================================
-        // ⭐ FUNCIÓN DE RENDERIZADO
-        // ================================================================
         function drawExportFrame(timestamp) {
             if (!exportIsPlaying || !state.isRecording) return;
             exportAnimationId = requestAnimationFrame(drawExportFrame);
-            
             if (!exportCanvas || !exportCtx) return;
-            
             if (lastFrameTimestamp > 0) {
                 const d = timestamp - lastFrameTimestamp;
                 fpsHistory.push(1000 / d);
@@ -834,14 +855,12 @@
             }
             lastFrameTimestamp = timestamp;
             framesRendered++;
-            
             const canvas = exportCanvas;
             const ctx = exportCtx;
             const videoTime = video.currentTime - state.exportStartTime;
             const intensity = state.intensity / 100;
             const usePerf = state.performance.performanceMode || state.performance.heavyMode;
 
-            // Audio fade
             if (gainNode) {
                 let g = state.exportMuted ? 0 : (state.exportVolume / 100);
                 if (state.fadeIn.enabled && videoTime < state.fadeIn.duration) g *= (videoTime / state.fadeIn.duration);
@@ -852,24 +871,18 @@
                 gainNode.gain.value = Math.max(0, g);
             }
 
-            // Limpiar canvas
             ctx.fillStyle = '#000000';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Dibujar video con filtros
             let filters = [];
             if (state.effects.sepia) filters.push(`sepia(${0.85 * intensity}) saturate(${1 - 0.4 * intensity}) contrast(${1 + 0.15 * intensity})`);
             if (state.effects.colorfade) filters.push(`saturate(${1 - 0.5 * intensity}) sepia(${0.3 * intensity}) contrast(${1 + 0.1 * intensity})`);
-            
             try {
                 ctx.filter = filters.length > 0 ? filters.join(' ') : 'none';
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 ctx.filter = 'none';
-            } catch (e) {
-                console.error('Error dibujando video:', e);
-            }
+            } catch (e) {}
 
-            // Efectos overlay
             if (state.effects.scanlines) {
                 const step = usePerf ? 6 : 4, h = usePerf ? 1 : 2;
                 ctx.fillStyle = `rgba(0,0,0,${0.2 * intensity})`;
@@ -934,7 +947,6 @@
                 ctx.strokeText('● REC', 30, 50); ctx.fillText('● REC', 30, 50);
             }
 
-            // Títulos
             if (state.title.enabled && state.title.text.trim()) {
                 let show = state.title.mode === 'fixed' || (videoTime >= 0 && videoTime < state.title.duration);
                 if (show) {
@@ -964,7 +976,6 @@
                 }
             }
 
-            // Fade
             let fo = 0;
             if (state.fadeIn.enabled && videoTime < state.fadeIn.duration) fo = 1 - (videoTime / state.fadeIn.duration);
             if (state.fadeOut.enabled) {
@@ -973,7 +984,6 @@
             }
             if (fo > 0) { ctx.fillStyle = `rgba(0,0,0,${fo})`; ctx.fillRect(0, 0, canvas.width, canvas.height); }
 
-            // Progreso
             if (state.effectiveDuration > 0) {
                 const p = (videoTime / state.effectiveDuration) * 100;
                 document.getElementById('exportProgressBar').style.width = Math.min(p, 100) + '%';
@@ -984,9 +994,32 @@
             }
         }
 
-        // ================================================================
-        // ⭐ EXPORTACIÓN - CON AUDIO CORREGIDO
-        // ================================================================
+        // ⭐ MOSTRAR MODAL CON VIDEO Y ENLACES DE DESCARGA
+        function showVideoModal(blob, fileName) {
+            if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
+            currentBlobUrl = URL.createObjectURL(blob);
+            currentFileName = fileName;
+            
+            const modalVideo = document.getElementById('modalVideo');
+            modalVideo.src = currentBlobUrl;
+            
+            // Configurar enlaces de descarga
+            document.getElementById('modalDownloadLink').href = currentBlobUrl;
+            document.getElementById('modalDownloadLink').download = fileName;
+            document.getElementById('modalOpenLink').href = currentBlobUrl;
+            
+            document.getElementById('videoModal').classList.add('active');
+        }
+
+        document.getElementById('btnModalClose').addEventListener('click', () => {
+            document.getElementById('videoModal').classList.remove('active');
+            document.getElementById('modalVideo').src = '';
+            if (currentBlobUrl) {
+                setTimeout(() => URL.revokeObjectURL(currentBlobUrl), 1000);
+                currentBlobUrl = null;
+            }
+        });
+
         btnExport.addEventListener('click', async () => {
             if (!state.videoLoaded || state.isRecording) return;
             if (state.effectiveDuration <= 0) { alert('La duración es 0.'); return; }
@@ -999,11 +1032,14 @@
                 document.getElementById('exportStatus').textContent = 'Preparando...';
                 perfIndicator.classList.add('active');
                 framesRendered = 0;
+                recordedChunks = [];
 
                 const exportDuration = state.effectiveDuration;
                 const baseVolume = state.exportMuted ? 0 : (state.exportVolume / 100);
                 
-                // Calcular dimensiones
+                originalVideoVolume = video.volume;
+                originalVideoMuted = video.muted;
+                
                 let cw, ch;
                 if (state.isPortrait) {
                     ch = state.quality.width;
@@ -1015,124 +1051,95 @@
                 cw = Math.floor(cw / 2) * 2;
                 ch = Math.floor(ch / 2) * 2;
 
-                console.log('🎬 Canvas:', cw + 'x' + ch, '@' + state.quality.fps + 'fps');
-
-                // Crear canvas
                 exportCanvas = document.createElement('canvas');
                 exportCanvas.width = cw;
                 exportCanvas.height = ch;
                 exportCtx = exportCanvas.getContext('2d');
 
-                // ⭐ CAPTURA AUTOMÁTICA con FPS específico (sincroniza audio/video)
                 const canvasStream = exportCanvas.captureStream(state.quality.fps);
-                console.log('✅ Stream creado con', state.quality.fps, 'fps');
-                console.log('   Video tracks:', canvasStream.getVideoTracks().length);
 
-                // ⭐ CONFIGURAR AUDIO - CON TODAS LAS CORRECCIONES
+                let videoAudioStream = null;
+                let audioTracks = [];
+                
                 try {
-                    // 1. Crear AudioContext si no existe
-                    if (!audioCtx) {
-                        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                        console.log('✅ AudioContext creado');
+                    if (typeof video.captureStream === 'function') {
+                        videoAudioStream = video.captureStream();
+                        audioTracks = videoAudioStream.getAudioTracks();
+                    }
+                    else if (typeof video.mozCaptureStream === 'function') {
+                        videoAudioStream = video.mozCaptureStream();
+                        audioTracks = videoAudioStream.getAudioTracks();
                     }
                     
-                    // 2. ⭐ CLAVE: RESUMIR AudioContext (requerido por navegadores)
-                    if (audioCtx.state === 'suspended') {
-                        await audioCtx.resume();
-                        console.log('✅ AudioContext resumido');
+                    let combinedStream = canvasStream;
+                    
+                    if (audioTracks.length > 0) {
+                        if (!audioCtx) {
+                            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        }
+                        if (audioCtx.state === 'suspended') {
+                            await audioCtx.resume();
+                        }
+                        
+                        audioStreamSource = audioCtx.createMediaStreamSource(new MediaStream(audioTracks));
+                        gainNode = audioCtx.createGain();
+                        gainNode.gain.value = baseVolume;
+                        
+                        const audioDestination = audioCtx.createMediaStreamDestination();
+                        audioStreamSource.connect(gainNode);
+                        gainNode.connect(audioDestination);
+                        
+                        combinedStream = new MediaStream([
+                            ...canvasStream.getVideoTracks(),
+                            ...audioDestination.stream.getAudioTracks()
+                        ]);
                     }
-                    
-                    // 3. Crear destination para el stream
-                    audioDestination = audioCtx.createMediaStreamDestination();
-                    
-                    // 4. Crear gain node
-                    gainNode = audioCtx.createGain();
-                    gainNode.gain.value = baseVolume;
-                    
-                    // 5. ⭐ CLAVE: Solo crear sourceNode UNA VEZ por video
-                    if (!videoSourceCreated) {
-                        sourceNode = audioCtx.createMediaElementSource(video);
-                        videoSourceCreated = true;
-                        console.log('✅ sourceNode creado (primera vez)');
-                    } else {
-                        console.log('✅ sourceNode reutilizado');
-                    }
-                    
-                    // 6. Conectar: source → gain → destination (grabación)
-                    //                   → audioCtx.destination (preview)
-                    sourceNode.connect(gainNode);
-                    gainNode.connect(audioDestination);
-                    
-                    // ⭐ CLAVE: También conectar a los parlantes para preview
-                    try {
-                        sourceNode.connect(audioCtx.destination);
-                    } catch(e) {
-                        console.log('Ya estaba conectado a destination');
-                    }
-                    
-                    console.log('✅ Audio conectado, gain:', baseVolume);
-                    
-                    // ⭐ VERIFICAR que el destination tiene audio tracks
-                    const audioTracks = audioDestination.stream.getAudioTracks();
-                    console.log('✅ Audio tracks en destination:', audioTracks.length);
-                    
-                    if (audioTracks.length === 0) {
-                        throw new Error('No se pudieron obtener tracks de audio');
-                    }
-                    
-                    // 7. ⭐ COMBINAR streams (video + audio)
-                    const combinedStream = new MediaStream([
-                        ...canvasStream.getVideoTracks(),
-                        ...audioTracks
-                    ]);
-                    
-                    console.log('✅ Stream combinado:', combinedStream.getTracks().length, 'tracks');
-                    console.log('   Video:', combinedStream.getVideoTracks().length);
-                    console.log('   Audio:', combinedStream.getAudioTracks().length);
 
-                    // 8. Detectar formato
-                    const mimes = ['video/mp4;codecs=h264', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
+                    const mimes = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
                     let mime = '';
                     for (let t of mimes) if (MediaRecorder.isTypeSupported(t)) { mime = t; break; }
                     if (!mime) { alert('Navegador no soporta grabación'); stopExport(); return; }
-                    console.log('✅ Formato:', mime);
 
-                    // 9. MediaRecorder
                     mediaRecorder = new MediaRecorder(combinedStream, { 
                         mimeType: mime,
                         videoBitsPerSecond: state.quality.bitrate
                     });
-                    recordedChunks = [];
+                    
                     mediaRecorder.ondataavailable = (e) => { 
-                        if (e.data.size > 0) recordedChunks.push(e.data); 
+                        if (e.data && e.data.size > 0) recordedChunks.push(e.data);
                     };
+                    
                     mediaRecorder.onstop = () => {
-                        console.log('✅ Grabación detenida, chunks:', recordedChunks.length);
-                        const blob = new Blob(recordedChunks, { type: mime });
-                        console.log('✅ Blob size:', blob.size, 'bytes');
-                        const ext = mime.includes('mp4') ? 'mp4' : 'webm';
-                        const fn = `vhs_export_${Math.round(state.exportStartTime)}s-${Math.round(exportDuration)}s_${Date.now()}.${ext}`;
-                        const file = new File([blob], fn, { type: mime });
-                        
-                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                            navigator.share({ files: [file], title: 'VHS Effects Studio' }).catch(() => downloadBlob(blob, fn));
-                        } else {
-                            downloadBlob(blob, fn);
+                        if (recordedChunks.length === 0) {
+                            alert('Error: No se generaron datos.');
+                            stopExport();
+                            return;
                         }
-                        document.getElementById('exportStatus').textContent = `✅ Completado! (${framesRendered} frames)`;
+                        
+                        const blob = new Blob(recordedChunks, { type: mime });
+                        
+                        if (blob.size === 0) {
+                            alert('Error: Archivo vacío.');
+                            stopExport();
+                            return;
+                        }
+                        
+                        const fn = `vhs_export_${Math.round(state.exportStartTime)}s-${Math.round(exportDuration)}s_${Date.now()}.webm`;
+                        
+                        document.getElementById('exportStatus').textContent = `✅ Completado! (${framesRendered} frames, ${(blob.size / 1024 / 1024).toFixed(2)} MB)`;
+                        
+                        // ⭐ MOSTRAR MODAL
+                        showVideoModal(blob, fn);
+                        
                         stopExport();
                     };
 
-                    // 10. Iniciar grabación con timeslice de 1 segundo
+                    video.muted = true;
                     mediaRecorder.start(1000);
-                    console.log('✅ MediaRecorder iniciado');
 
-                    // 11. Preparar video
                     video.currentTime = state.exportStartTime;
                     video.onseeked = () => {
-                        console.log('✅ Video en posición:', video.currentTime);
                         video.play().then(() => {
-                            console.log('✅ Video reproduciéndose');
                             exportIsPlaying = true;
                             lastFrameTimestamp = 0;
                             fpsHistory = [];
@@ -1140,39 +1147,28 @@
                             requestAnimationFrame(drawExportFrame);
                             
                             autoStopTimeout = setTimeout(() => {
-                                console.log('⏹ Deteniendo grabación...');
-                                if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+                                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                                    mediaRecorder.stop();
+                                }
                                 video.pause();
                                 exportIsPlaying = false;
                             }, exportDuration * 1000);
                         }).catch(err => {
-                            console.error('❌ Error play:', err);
                             alert('Error al reproducir: ' + err.message);
                             stopExport();
                         });
                     };
 
                 } catch (e) {
-                    console.error('❌ Error audio:', e);
                     alert('Error de audio: ' + e.message);
                     stopExport();
                 }
 
             } catch (err) {
-                console.error('❌ Error exportación:', err);
                 alert('Error: ' + err.message);
                 stopExport();
             }
         });
-
-        function downloadBlob(blob, fn) {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = fn;
-            document.body.appendChild(a); a.click();
-            document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-        }
 
         function stopExport() {
             if (autoStopTimeout) { clearTimeout(autoStopTimeout); autoStopTimeout = null; }
@@ -1185,9 +1181,17 @@
             document.getElementById('exportProgressBar').style.width = '100%';
             document.getElementById('exportProgressBar').textContent = '100%';
             
-            // ⭐ LIMPIAR solo lo necesario, mantener audioCtx y sourceNode
-            if (audioDestination) audioDestination = null;
-            if (gainNode) gainNode = null;
+            video.muted = originalVideoMuted;
+            video.volume = originalVideoVolume;
+            
+            if (audioStreamSource) {
+                try { audioStreamSource.disconnect(); } catch(e) {}
+                audioStreamSource = null;
+            }
+            if (gainNode) {
+                try { gainNode.disconnect(); } catch(e) {}
+                gainNode = null;
+            }
             
             exportCanvas = null;
             exportCtx = null;
@@ -1195,8 +1199,6 @@
 
         video.volume = 0.8;
         updateExportSummary();
-        console.log('🎬 VHS Effects Studio listo');
-        console.log('🔊 Audio: captureStream(' + state.quality.fps + 'fps) + AudioContext');
     </script>
 </body>
 </html>
