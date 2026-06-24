@@ -8,1151 +8,177 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         :root {
-            --vhs-green: #00ff00;
-            --vhs-red: #ff0040;
-            --vhs-blue: #0080ff;
-            --vhs-yellow: #ffcc00;
-            --vhs-purple: #cc66ff;
-            --vhs-orange: #ff8800;
-            --bg-dark: #0a0a0a;
-            --panel-bg: #1a1a1a;
+            --vhs-green: #00ff00; --vhs-red: #ff0040; --vhs-blue: #0080ff;
+            --vhs-yellow: #ffcc00; --vhs-purple: #cc66ff; --vhs-orange: #ff8800;
+            --bg-dark: #0a0a0a; --panel-bg: #1a1a1a;
         }
         * { box-sizing: border-box; }
-        body {
-            background-color: var(--bg-dark);
-            color: #fff;
-            font-family: 'Courier New', monospace;
-            min-height: 100vh;
-        }
-        .app-header {
-            background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
-            border-bottom: 2px solid #333;
-            padding: 1rem 0;
-        }
-        .app-title {
-            color: var(--vhs-green);
-            text-shadow: 2px 2px 0px rgba(255, 0, 0, 0.5), -2px -2px 0px rgba(0, 0, 255, 0.5);
-            letter-spacing: 3px;
-            font-weight: bold;
-        }
-        .video-wrapper {
-            position: relative;
-            background: #000;
-            border: 3px solid #333;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 0 30px rgba(0, 255, 0, 0.1);
-        }
-        .video-wrapper video {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: block;
-        }
-        .upload-area {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0, 0, 0, 0.85);
-            border: 3px dashed #444;
-            cursor: pointer;
-            transition: all 0.3s;
-            z-index: 10;
-        }
-        .upload-area:hover, .upload-area.dragover {
-            border-color: var(--vhs-green);
-            background: rgba(0, 255, 0, 0.05);
-        }
+        body { background-color: var(--bg-dark); color: #fff; font-family: 'Courier New', monospace; min-height: 100vh; }
+        .app-header { background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%); border-bottom: 2px solid #333; padding: 1rem 0; }
+        .app-title { color: var(--vhs-green); text-shadow: 2px 2px 0px rgba(255, 0, 0, 0.5), -2px -2px 0px rgba(0, 0, 255, 0.5); letter-spacing: 3px; font-weight: bold; }
+        .video-wrapper { position: relative; background: #000; border: 3px solid #333; border-radius: 8px; overflow: hidden; box-shadow: 0 0 30px rgba(0, 255, 0, 0.1); }
+        .video-wrapper video { width: 100%; height: 100%; object-fit: contain; display: block; }
+        .upload-area { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.85); border: 3px dashed #444; cursor: pointer; transition: all 0.3s; z-index: 10; }
+        .upload-area:hover, .upload-area.dragover { border-color: var(--vhs-green); background: rgba(0, 255, 0, 0.05); }
         .upload-area.hidden { display: none; }
         .upload-icon { font-size: 4rem; color: var(--vhs-green); margin-bottom: 1rem; }
-        .vhs-overlay {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 5;
-        }
-        .scanlines-overlay {
-            background: linear-gradient(to bottom,
-                rgba(255,255,255,0) 0%, rgba(255,255,255,0) 50%,
-                rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.3) 100%);
-            background-size: 100% 4px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .scanlines-overlay.active {
-            opacity: 1;
-            animation: scanlineScroll 8s linear infinite;
-        }
-        @keyframes scanlineScroll {
-            0% { background-position: 0 0; }
-            100% { background-position: 0 100px; }
-        }
-        .noise-overlay {
-            opacity: 0;
-            transition: opacity 0.3s;
-            mix-blend-mode: overlay;
-        }
-        .noise-overlay.active {
-            opacity: 0.4;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-            animation: noiseFlicker 0.1s steps(2) infinite;
-        }
-        @keyframes noiseFlicker {
-            0% { transform: translate(0, 0); }
-            50% { transform: translate(-2px, 2px); }
-            100% { transform: translate(2px, -2px); }
-        }
-        .tracking-shake-overlay {
-            position: absolute;
-            bottom: 0; left: 0;
-            width: 100%; height: 60px;
-            background: repeating-linear-gradient(0deg,
-                rgba(255,255,255,0.9) 0px, rgba(255,255,255,0.9) 2px,
-                rgba(0,0,0,0.9) 2px, rgba(0,0,0,0.9) 4px,
-                rgba(255,255,255,0.7) 4px, rgba(255,255,255,0.7) 6px,
-                rgba(0,0,0,0.8) 6px, rgba(0,0,0,0.8) 8px);
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: 6;
-            pointer-events: none;
-        }
-        .tracking-shake-overlay.active {
-            opacity: 0.85;
-            animation: trackingShake 0.08s infinite;
-        }
-        @keyframes trackingShake {
-            0% { transform: translateY(0) scaleY(1); }
-            25% { transform: translateY(-3px) scaleY(1.05); }
-            50% { transform: translateY(2px) scaleY(0.95); }
-            75% { transform: translateY(-1px) scaleY(1.02); }
-            100% { transform: translateY(0) scaleY(1); }
-        }
-        .rolling-bar-overlay {
-            position: absolute;
-            left: 0;
-            width: 100%; height: 80px;
-            background: linear-gradient(to bottom,
-                rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 20%,
-                rgba(0,0,0,0.6) 40%, rgba(255,255,255,0.4) 60%,
-                rgba(0,0,0,0.5) 80%, rgba(255,255,255,0) 100%);
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: 6;
-            pointer-events: none;
-            animation: rollingBarMove 8s linear infinite;
-        }
+        .vhs-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+        .scanlines-overlay { background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.3) 100%); background-size: 100% 4px; opacity: 0; transition: opacity 0.3s; }
+        .scanlines-overlay.active { opacity: 1; animation: scanlineScroll 8s linear infinite; }
+        @keyframes scanlineScroll { 0% { background-position: 0 0; } 100% { background-position: 0 100px; } }
+        .noise-overlay { opacity: 0; transition: opacity 0.3s; mix-blend-mode: overlay; }
+        .noise-overlay.active { opacity: 0.4; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); animation: noiseFlicker 0.1s steps(2) infinite; }
+        @keyframes noiseFlicker { 0% { transform: translate(0, 0); } 50% { transform: translate(-2px, 2px); } 100% { transform: translate(2px, -2px); } }
+        .tracking-shake-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: repeating-linear-gradient(0deg, rgba(255,255,255,0.9) 0px, rgba(255,255,255,0.9) 2px, rgba(0,0,0,0.9) 2px, rgba(0,0,0,0.9) 4px, rgba(255,255,255,0.7) 4px, rgba(255,255,255,0.7) 6px, rgba(0,0,0,0.8) 6px, rgba(0,0,0,0.8) 8px); opacity: 0; transition: opacity 0.3s; z-index: 6; pointer-events: none; }
+        .tracking-shake-overlay.active { opacity: 0.85; animation: trackingShake 0.08s infinite; }
+        @keyframes trackingShake { 0% { transform: translateY(0) scaleY(1); } 25% { transform: translateY(-3px) scaleY(1.05); } 50% { transform: translateY(2px) scaleY(0.95); } 75% { transform: translateY(-1px) scaleY(1.02); } 100% { transform: translateY(0) scaleY(1); } }
+        .rolling-bar-overlay { position: absolute; left: 0; width: 100%; height: 80px; background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 20%, rgba(0,0,0,0.6) 40%, rgba(255,255,255,0.4) 60%, rgba(0,0,0,0.5) 80%, rgba(255,255,255,0) 100%); opacity: 0; transition: opacity 0.3s; z-index: 6; pointer-events: none; animation: rollingBarMove 8s linear infinite; }
         .rolling-bar-overlay.active { opacity: 0.7; }
-        @keyframes rollingBarMove {
-            0% { top: -80px; }
-            100% { top: 100%; }
-        }
-        .vignette-overlay {
-            box-shadow: inset 0 0 150px rgba(0,0,0,0.9);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
+        @keyframes rollingBarMove { 0% { top: -80px; } 100% { top: 100%; } }
+        .vignette-overlay { box-shadow: inset 0 0 150px rgba(0,0,0,0.9); opacity: 0; transition: opacity 0.3s; }
         .vignette-overlay.active { opacity: 1; }
-        .vhs-timestamp {
-            position: absolute;
-            bottom: 20px; right: 20px;
-            font-size: 1.5rem;
-            color: #fff;
-            text-shadow: 2px 2px 0 #000, -1px -1px 0 #000;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            letter-spacing: 2px;
-            z-index: 7;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .vhs-timestamp.active {
-            opacity: 1;
-            animation: timestampFlicker 3s infinite;
-        }
-        @keyframes timestampFlicker {
-            0%, 95%, 100% { opacity: 1; }
-            96% { opacity: 0.3; }
-            97% { opacity: 1; }
-            98% { opacity: 0.5; }
-        }
-        .rec-indicator {
-            position: absolute;
-            top: 20px; left: 20px;
-            color: #ff0000;
-            font-weight: bold;
-            font-size: 1.2rem;
-            text-shadow: 2px 2px 0 #000;
-            z-index: 7;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .rec-indicator.active {
-            opacity: 1;
-            animation: recBlink 1s infinite;
-        }
-        .rec-indicator::before {
-            content: "●";
-            margin-right: 5px;
-            font-size: 1.5rem;
-        }
-        @keyframes recBlink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0.3; }
-        }
-        .play-indicator {
-            position: absolute;
-            top: 20px; right: 20px;
-            color: #fff;
-            font-weight: bold;
-            font-size: 1rem;
-            text-shadow: 2px 2px 0 #000;
-            z-index: 7;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
+        .vhs-timestamp { position: absolute; bottom: 20px; right: 20px; font-size: 1.5rem; color: #fff; text-shadow: 2px 2px 0 #000, -1px -1px 0 #000; font-family: 'Courier New', monospace; font-weight: bold; letter-spacing: 2px; z-index: 7; opacity: 0; transition: opacity 0.3s; }
+        .vhs-timestamp.active { opacity: 1; animation: timestampFlicker 3s infinite; }
+        @keyframes timestampFlicker { 0%, 95%, 100% { opacity: 1; } 96% { opacity: 0.3; } 97% { opacity: 1; } 98% { opacity: 0.5; } }
+        .rec-indicator { position: absolute; top: 20px; left: 20px; color: #ff0000; font-weight: bold; font-size: 1.2rem; text-shadow: 2px 2px 0 #000; z-index: 7; opacity: 0; transition: opacity 0.3s; }
+        .rec-indicator.active { opacity: 1; animation: recBlink 1s infinite; }
+        .rec-indicator::before { content: "●"; margin-right: 5px; font-size: 1.5rem; }
+        @keyframes recBlink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0.3; } }
+        .play-indicator { position: absolute; top: 20px; right: 20px; color: #fff; font-weight: bold; font-size: 1rem; text-shadow: 2px 2px 0 #000; z-index: 7; opacity: 0; transition: opacity 0.3s; }
         .play-indicator.active { opacity: 1; }
         .shake-effect { animation: videoShake 0.15s infinite; }
-        @keyframes videoShake {
-            0%, 100% { transform: translate(0, 0); }
-            25% { transform: translate(-1px, 1px); }
-            50% { transform: translate(1px, -1px); }
-            75% { transform: translate(-1px, -1px); }
-        }
+        @keyframes videoShake { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-1px, 1px); } 50% { transform: translate(1px, -1px); } 75% { transform: translate(-1px, -1px); } }
         .glitch-effect { animation: glitchEffect 3s infinite; }
-        @keyframes glitchEffect {
-            0%, 90%, 100% { clip-path: inset(0 0 0 0); transform: translate(0, 0); }
-            92% { clip-path: inset(20% 0 60% 0); transform: translate(-5px, 0); }
-            94% { clip-path: inset(50% 0 20% 0); transform: translate(5px, 0); }
-            96% { clip-path: inset(10% 0 70% 0); transform: translate(-3px, 0); }
-        }
-        .title-overlay {
-            position: absolute;
-            z-index: 8;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s;
-            text-align: center;
-            width: 90%;
-            left: 5%;
-        }
+        @keyframes glitchEffect { 0%, 90%, 100% { clip-path: inset(0 0 0 0); transform: translate(0, 0); } 92% { clip-path: inset(20% 0 60% 0); transform: translate(-5px, 0); } 94% { clip-path: inset(50% 0 20% 0); transform: translate(5px, 0); } 96% { clip-path: inset(10% 0 70% 0); transform: translate(-3px, 0); } }
+        .title-overlay { position: absolute; z-index: 8; pointer-events: none; opacity: 0; transition: opacity 0.3s; text-align: center; width: 90%; left: 5%; }
         .title-overlay.active { opacity: 1; }
         .title-overlay.position-top { top: 10%; }
         .title-overlay.position-center { top: 50%; transform: translateY(-50%); }
         .title-overlay.position-bottom { bottom: 15%; }
-        .title-text {
-            display: inline-block;
-            padding: 10px 20px;
-            line-height: 1.3;
-            word-wrap: break-word;
-            max-width: 100%;
-        }
-        .title-style-classic {
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            text-shadow: 3px 3px 0 #000, -1px -1px 0 #000;
-        }
-        .title-style-neon {
-            font-family: 'Arial Black', sans-serif;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
-        }
-        .title-style-retro {
-            font-family: 'Impact', sans-serif;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            text-shadow: 4px 4px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
-        }
-        .title-style-vintage {
-            font-family: 'Georgia', serif;
-            font-style: italic;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-        }
-        .title-style-modern {
-            font-family: 'Arial', sans-serif;
-            font-weight: 300;
-            letter-spacing: 5px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-        }
-        .title-style-glitch {
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            animation: titleGlitch 0.3s infinite;
-        }
-        @keyframes titleGlitch {
-            0%, 100% { text-shadow: 2px 0 #ff0000, -2px 0 #00ffff; transform: translate(0); }
-            25% { text-shadow: -2px 0 #ff0000, 2px 0 #00ffff; transform: translate(-2px, 1px); }
-            50% { text-shadow: 2px 2px #ff0000, -2px -2px #00ffff; transform: translate(1px, -1px); }
-            75% { text-shadow: -2px -2px #ff0000, 2px 2px #00ffff; transform: translate(-1px, 2px); }
-        }
-        .control-panel {
-            background: var(--panel-bg);
-            border: 2px solid #333;
-            border-radius: 8px;
-            padding: 1.5rem;
-        }
-        .panel-title {
-            color: var(--vhs-green);
-            border-bottom: 1px solid #333;
-            padding-bottom: 0.5rem;
-            margin-bottom: 1rem;
-            font-weight: bold;
-            letter-spacing: 2px;
-        }
-        .effect-toggle {
-            background: #2a2a2a;
-            border: 2px solid #444;
-            color: #aaa;
-            padding: 0.6rem 1rem;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            transition: all 0.2s;
-            width: 100%;
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+        .title-text { display: inline-block; padding: 10px 20px; line-height: 1.3; word-wrap: break-word; max-width: 100%; }
+        .title-style-classic { font-family: 'Courier New', monospace; font-weight: bold; text-transform: uppercase; letter-spacing: 3px; text-shadow: 3px 3px 0 #000, -1px -1px 0 #000; }
+        .title-style-neon { font-family: 'Arial Black', sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor; }
+        .title-style-retro { font-family: 'Impact', sans-serif; font-weight: bold; text-transform: uppercase; letter-spacing: 4px; text-shadow: 4px 4px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000; }
+        .title-style-vintage { font-family: 'Georgia', serif; font-style: italic; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
+        .title-style-modern { font-family: 'Arial', sans-serif; font-weight: 300; letter-spacing: 5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
+        .title-style-glitch { font-family: 'Courier New', monospace; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; animation: titleGlitch 0.3s infinite; }
+        @keyframes titleGlitch { 0%, 100% { text-shadow: 2px 0 #ff0000, -2px 0 #00ffff; transform: translate(0); } 25% { text-shadow: -2px 0 #ff0000, 2px 0 #00ffff; transform: translate(-2px, 1px); } 50% { text-shadow: 2px 2px #ff0000, -2px -2px #00ffff; transform: translate(1px, -1px); } 75% { text-shadow: -2px -2px #ff0000, 2px 2px #00ffff; transform: translate(-1px, 2px); } }
+        .control-panel { background: var(--panel-bg); border: 2px solid #333; border-radius: 8px; padding: 1.5rem; }
+        .panel-title { color: var(--vhs-green); border-bottom: 1px solid #333; padding-bottom: 0.5rem; margin-bottom: 1rem; font-weight: bold; letter-spacing: 2px; }
+        .effect-toggle { background: #2a2a2a; border: 2px solid #444; color: #aaa; padding: 0.6rem 1rem; font-family: 'Courier New', monospace; font-weight: bold; text-transform: uppercase; font-size: 0.85rem; transition: all 0.2s; width: 100%; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between; }
         .effect-toggle:hover { border-color: #666; color: #fff; }
-        .effect-toggle.active {
-            background: linear-gradient(180deg, #00aa00 0%, #005500 100%);
-            border-color: var(--vhs-green);
-            color: #fff;
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
-        }
-        .effect-toggle .status-dot {
-            width: 10px; height: 10px;
-            border-radius: 50%;
-            background: #555;
-            transition: all 0.2s;
-        }
-        .effect-toggle.active .status-dot {
-            background: var(--vhs-green);
-            box-shadow: 0 0 8px var(--vhs-green);
-        }
+        .effect-toggle.active { background: linear-gradient(180deg, #00aa00 0%, #005500 100%); border-color: var(--vhs-green); color: #fff; box-shadow: 0 0 10px rgba(0, 255, 0, 0.3); }
+        .effect-toggle .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #555; transition: all 0.2s; }
+        .effect-toggle.active .status-dot { background: var(--vhs-green); box-shadow: 0 0 8px var(--vhs-green); }
         .form-range::-webkit-slider-thumb { background: var(--vhs-green); }
         .form-range::-moz-range-thumb { background: var(--vhs-green); }
-        .intensity-label {
-            color: var(--vhs-green);
-            font-size: 0.85rem;
-            font-weight: bold;
-        }
-        .action-btn {
-            background: linear-gradient(180deg, #444 0%, #222 100%);
-            border: 2px solid #555;
-            color: #fff;
-            padding: 0.7rem 1rem;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            text-transform: uppercase;
-            transition: all 0.2s;
-            width: 100%;
-            margin-bottom: 0.5rem;
-        }
-        .action-btn:hover {
-            background: linear-gradient(180deg, #555 0%, #333 100%);
-            border-color: #777;
-        }
+        .intensity-label { color: var(--vhs-green); font-size: 0.85rem; font-weight: bold; }
+        .action-btn { background: linear-gradient(180deg, #444 0%, #222 100%); border: 2px solid #555; color: #fff; padding: 0.7rem 1rem; font-family: 'Courier New', monospace; font-weight: bold; text-transform: uppercase; transition: all 0.2s; width: 100%; margin-bottom: 0.5rem; }
+        .action-btn:hover { background: linear-gradient(180deg, #555 0%, #333 100%); border-color: #777; }
         .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .action-btn.btn-export {
-            background: linear-gradient(180deg, #aa0000 0%, #550000 100%);
-            border-color: var(--vhs-red);
-        }
-        .action-btn.btn-export:hover {
-            background: linear-gradient(180deg, #cc0000 0%, #770000 100%);
-        }
-        .recording-banner {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%;
-            background: rgba(255, 0, 0, 0.9);
-            color: #fff;
-            text-align: center;
-            padding: 0.5rem;
-            font-weight: bold;
-            z-index: 20;
-            display: none;
-        }
-        .recording-banner.active {
-            display: block;
-            animation: recBannerBlink 1s infinite;
-        }
-        @keyframes recBannerBlink {
-            0%, 50% { background: rgba(255, 0, 0, 0.9); }
-            51%, 100% { background: rgba(200, 0, 0, 0.7); }
-        }
-        .preset-btn {
-            background: #2a2a2a;
-            border: 1px solid #444;
-            color: #ccc;
-            padding: 0.4rem 0.8rem;
-            font-size: 0.75rem;
-            font-family: 'Courier New', monospace;
-            transition: all 0.2s;
-        }
-        .preset-btn:hover {
-            background: #3a3a3a;
-            border-color: var(--vhs-green);
-            color: var(--vhs-green);
-        }
-        .navigation-panel {
-            background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
-            border: 2px solid var(--vhs-blue);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 1rem;
-        }
-        .navigation-panel-title {
-            color: var(--vhs-blue);
-            font-weight: bold;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .time-display {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-            font-size: 0.85rem;
-        }
+        .action-btn.btn-export { background: linear-gradient(180deg, #aa0000 0%, #550000 100%); border-color: var(--vhs-red); }
+        .recording-banner { position: absolute; top: 0; left: 0; width: 100%; background: rgba(255, 0, 0, 0.9); color: #fff; text-align: center; padding: 0.5rem; font-weight: bold; z-index: 20; display: none; }
+        .recording-banner.active { display: block; animation: recBannerBlink 1s infinite; }
+        @keyframes recBannerBlink { 0%, 50% { background: rgba(255, 0, 0, 0.9); } 51%, 100% { background: rgba(200, 0, 0, 0.7); } }
+        .preset-btn { background: #2a2a2a; border: 1px solid #444; color: #ccc; padding: 0.4rem 0.8rem; font-size: 0.75rem; font-family: 'Courier New', monospace; transition: all 0.2s; }
+        .preset-btn:hover { background: #3a3a3a; border-color: var(--vhs-green); color: var(--vhs-green); }
+        .navigation-panel { background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%); border: 2px solid var(--vhs-blue); border-radius: 8px; padding: 1rem; margin-top: 1rem; }
+        .navigation-panel-title { color: var(--vhs-blue); font-weight: bold; font-size: 0.9rem; letter-spacing: 1px; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+        .time-display { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-size: 0.85rem; }
         .time-current { color: var(--vhs-blue); font-weight: bold; }
         .time-total { color: #888; }
-        .timeline-container {
-            position: relative;
-            height: 40px;
-            background: #1a1a1a;
-            border: 2px solid #444;
-            border-radius: 4px;
-            margin-bottom: 0.75rem;
-            cursor: pointer;
-            overflow: hidden;
-        }
-        .timeline-range {
-            position: absolute;
-            top: 0;
-            height: 100%;
-            background: rgba(0, 255, 0, 0.2);
-            border-left: 2px solid var(--vhs-green);
-            border-right: 2px solid var(--vhs-green);
-            pointer-events: none;
-            z-index: 2;
-        }
-        .timeline-progress {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            background: rgba(0, 128, 255, 0.3);
-            pointer-events: none;
-            z-index: 1;
-        }
-        .timeline-cursor {
-            position: absolute;
-            top: 0;
-            width: 3px;
-            height: 100%;
-            background: var(--vhs-blue);
-            box-shadow: 0 0 8px var(--vhs-blue);
-            pointer-events: none;
-            z-index: 3;
-            transition: left 0.1s linear;
-        }
-        .timeline-start-marker {
-            position: absolute;
-            top: 0;
-            width: 4px;
-            height: 100%;
-            background: var(--vhs-yellow);
-            box-shadow: 0 0 10px var(--vhs-yellow);
-            cursor: ew-resize;
-            z-index: 4;
-        }
-        .timeline-start-marker::before {
-            content: "▼";
-            position: absolute;
-            top: -18px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: var(--vhs-yellow);
-            font-size: 12px;
-        }
-        .nav-buttons {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 0.4rem;
-            margin-bottom: 0.75rem;
-        }
-        .nav-btn {
-            background: #2a2a2a;
-            border: 2px solid #444;
-            color: #ccc;
-            padding: 0.5rem 0.2rem;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            font-size: 0.75rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            border-radius: 4px;
-        }
-        .nav-btn:hover {
-            border-color: var(--vhs-blue);
-            color: var(--vhs-blue);
-            background: #3a3a3a;
-        }
+        .timeline-container { position: relative; height: 40px; background: #1a1a1a; border: 2px solid #444; border-radius: 4px; margin-bottom: 0.75rem; cursor: pointer; overflow: hidden; }
+        .timeline-range { position: absolute; top: 0; height: 100%; background: rgba(0, 255, 0, 0.2); border-left: 2px solid var(--vhs-green); border-right: 2px solid var(--vhs-green); pointer-events: none; z-index: 2; }
+        .timeline-progress { position: absolute; top: 0; left: 0; height: 100%; background: rgba(0, 128, 255, 0.3); pointer-events: none; z-index: 1; }
+        .timeline-cursor { position: absolute; top: 0; width: 3px; height: 100%; background: var(--vhs-blue); box-shadow: 0 0 8px var(--vhs-blue); pointer-events: none; z-index: 3; transition: left 0.1s linear; }
+        .timeline-start-marker { position: absolute; top: 0; width: 4px; height: 100%; background: var(--vhs-yellow); box-shadow: 0 0 10px var(--vhs-yellow); cursor: ew-resize; z-index: 4; }
+        .timeline-start-marker::before { content: "▼"; position: absolute; top: -18px; left: 50%; transform: translateX(-50%); color: var(--vhs-yellow); font-size: 12px; }
+        .nav-buttons { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.4rem; margin-bottom: 0.75rem; }
+        .nav-btn { background: #2a2a2a; border: 2px solid #444; color: #ccc; padding: 0.5rem 0.2rem; font-family: 'Courier New', monospace; font-weight: bold; font-size: 0.75rem; text-align: center; cursor: pointer; transition: all 0.2s; border-radius: 4px; }
+        .nav-btn:hover { border-color: var(--vhs-blue); color: var(--vhs-blue); background: #3a3a3a; }
         .nav-btn:active { transform: scale(0.95); }
-        .nav-btn i {
-            display: block;
-            font-size: 1rem;
-            margin-bottom: 2px;
-        }
-        .start-point-controls {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-            margin-bottom: 0.5rem;
-            flex-wrap: wrap;
-        }
-        .start-point-input {
-            background: #1a1a1a;
-            border: 2px solid #444;
-            color: var(--vhs-yellow);
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            padding: 0.4rem 0.6rem;
-            width: 100px;
-            text-align: center;
-            border-radius: 4px;
-        }
-        .start-point-input:focus {
-            outline: none;
-            border-color: var(--vhs-yellow);
-            box-shadow: 0 0 8px rgba(255, 204, 0, 0.3);
-        }
-        .start-point-btn {
-            background: linear-gradient(180deg, #aa8800 0%, #554400 100%);
-            border: 2px solid var(--vhs-yellow);
-            color: #fff;
-            padding: 0.4rem 0.8rem;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            border-radius: 4px;
-            white-space: nowrap;
-        }
-        .start-point-btn:hover {
-            background: linear-gradient(180deg, #ccaa00 0%, #776600 100%);
-        }
-        .start-point-label {
-            color: #aaa;
-            font-size: 0.8rem;
-            margin: 0;
-        }
-        .export-range-info {
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 4px;
-            padding: 0.5rem 0.75rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.8rem;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-        .export-range-info .range-item {
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-        }
+        .nav-btn i { display: block; font-size: 1rem; margin-bottom: 2px; }
+        .start-point-controls { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; }
+        .start-point-input { background: #1a1a1a; border: 2px solid #444; color: var(--vhs-yellow); font-family: 'Courier New', monospace; font-weight: bold; padding: 0.4rem 0.6rem; width: 100px; text-align: center; border-radius: 4px; }
+        .start-point-btn { background: linear-gradient(180deg, #aa8800 0%, #554400 100%); border: 2px solid var(--vhs-yellow); color: #fff; padding: 0.4rem 0.8rem; font-family: 'Courier New', monospace; font-weight: bold; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; border-radius: 4px; white-space: nowrap; }
+        .start-point-label { color: #aaa; font-size: 0.8rem; margin: 0; }
+        .export-range-info { background: #1a1a1a; border: 1px solid #333; border-radius: 4px; padding: 0.5rem 0.75rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; flex-wrap: wrap; gap: 0.5rem; }
         .export-range-info .range-label { color: #888; }
         .export-range-info .range-value { color: var(--vhs-green); font-weight: bold; }
-        .volume-panel {
-            background: #222;
-            border: 2px solid #444;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-        .volume-panel-title {
-            color: var(--vhs-blue);
-            font-weight: bold;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .volume-row {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 0.5rem;
-        }
-        .volume-row label {
-            color: #aaa;
-            font-size: 0.8rem;
-            min-width: 90px;
-            margin: 0;
-        }
+        .volume-panel, .quality-panel { background: #222; border: 2px solid #444; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+        .volume-panel-title, .quality-panel-title { font-weight: bold; font-size: 0.9rem; letter-spacing: 1px; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+        .volume-panel-title { color: var(--vhs-blue); }
+        .quality-panel { border-color: var(--vhs-green); background: linear-gradient(135deg, #1a2e1a 0%, #163e16 100%); }
+        .quality-panel-title { color: var(--vhs-green); }
+        .volume-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+        .volume-row label { color: #aaa; font-size: 0.8rem; min-width: 90px; margin: 0; }
         .volume-row .form-range { flex: 1; }
-        .volume-row .volume-value {
-            color: var(--vhs-blue);
-            font-weight: bold;
-            font-size: 0.85rem;
-            min-width: 45px;
-            text-align: right;
-        }
-        .volume-row .form-range::-webkit-slider-thumb { background: var(--vhs-blue); }
-        .volume-row .form-range::-moz-range-thumb { background: var(--vhs-blue); }
-        .volume-mute-btn {
-            background: #2a2a2a;
-            border: 1px solid #444;
-            color: #aaa;
-            padding: 0.3rem 0.6rem;
-            font-size: 0.75rem;
-            font-family: 'Courier New', monospace;
-            border-radius: 3px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .volume-mute-btn:hover {
-            border-color: var(--vhs-blue);
-            color: var(--vhs-blue);
-        }
-        .volume-mute-btn.muted {
-            background: #aa0000;
-            border-color: var(--vhs-red);
-            color: #fff;
-        }
-        .pro-panel {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            border: 2px solid var(--vhs-purple);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            position: relative;
-            overflow: hidden;
-        }
-        .pro-panel::before {
-            content: "PRO";
-            position: absolute;
-            top: 5px; right: 10px;
-            background: var(--vhs-purple);
-            color: #fff;
-            font-size: 0.65rem;
-            font-weight: bold;
-            padding: 2px 8px;
-            border-radius: 3px;
-            letter-spacing: 1px;
-        }
-        .pro-panel-title {
-            color: var(--vhs-purple);
-            font-weight: bold;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .fade-toggle {
-            background: #2a2a2a;
-            border: 2px solid #444;
-            color: #aaa;
-            padding: 0.5rem 0.8rem;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            transition: all 0.2s;
-            width: 100%;
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-radius: 4px;
-        }
-        .fade-toggle:hover { border-color: #666; color: #fff; }
-        .fade-toggle.active {
-            background: linear-gradient(180deg, #7733cc 0%, #441188 100%);
-            border-color: var(--vhs-purple);
-            color: #fff;
-            box-shadow: 0 0 10px rgba(204, 102, 255, 0.3);
-        }
-        .fade-toggle .status-dot {
-            width: 10px; height: 10px;
-            border-radius: 50%;
-            background: #555;
-            transition: all 0.2s;
-        }
-        .fade-toggle.active .status-dot {
-            background: var(--vhs-purple);
-            box-shadow: 0 0 8px var(--vhs-purple);
-        }
-        .fade-options {
-            display: none;
-            margin-top: 0.5rem;
-            padding: 0.75rem;
-            background: rgba(0,0,0,0.3);
-            border-radius: 4px;
-            border: 1px solid #333;
-        }
+        .volume-row .volume-value { color: var(--vhs-blue); font-weight: bold; font-size: 0.85rem; min-width: 45px; text-align: right; }
+        .volume-mute-btn { background: #2a2a2a; border: 1px solid #444; color: #aaa; padding: 0.3rem 0.6rem; font-size: 0.75rem; font-family: 'Courier New', monospace; border-radius: 3px; cursor: pointer; }
+        .volume-mute-btn.muted { background: #aa0000; border-color: var(--vhs-red); color: #fff; }
+        .pro-panel { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: 2px solid var(--vhs-purple); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; position: relative; overflow: hidden; }
+        .pro-panel::before { content: "PRO"; position: absolute; top: 5px; right: 10px; background: var(--vhs-purple); color: #fff; font-size: 0.65rem; font-weight: bold; padding: 2px 8px; border-radius: 3px; }
+        .pro-panel-title { color: var(--vhs-purple); font-weight: bold; font-size: 0.9rem; letter-spacing: 1px; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+        .fade-toggle { background: #2a2a2a; border: 2px solid #444; color: #aaa; padding: 0.5rem 0.8rem; font-family: 'Courier New', monospace; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; transition: all 0.2s; width: 100%; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between; border-radius: 4px; }
+        .fade-toggle.active { background: linear-gradient(180deg, #7733cc 0%, #441188 100%); border-color: var(--vhs-purple); color: #fff; }
+        .fade-toggle .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #555; }
+        .fade-toggle.active .status-dot { background: var(--vhs-purple); box-shadow: 0 0 8px var(--vhs-purple); }
+        .fade-options { display: none; margin-top: 0.5rem; padding: 0.75rem; background: rgba(0,0,0,0.3); border-radius: 4px; border: 1px solid #333; }
         .fade-options.show { display: block; }
-        .fade-duration-btns {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 0.4rem;
-            margin-bottom: 0.5rem;
-        }
-        .fade-duration-btn {
-            background: #2a2a2a;
-            border: 2px solid #444;
-            color: #ccc;
-            padding: 0.4rem 0.2rem;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            font-size: 0.75rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            border-radius: 4px;
-        }
-        .fade-duration-btn:hover {
-            border-color: var(--vhs-purple);
-            color: var(--vhs-purple);
-        }
-        .fade-duration-btn.active {
-            background: linear-gradient(180deg, #7733cc 0%, #441188 100%);
-            border-color: var(--vhs-purple);
-            color: #fff;
-        }
-        .fade-label {
-            color: #aaa;
-            font-size: 0.75rem;
-            margin-bottom: 0.3rem;
-            display: block;
-        }
-        .duration-panel {
-            background: #222;
-            border: 2px solid #444;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-        .duration-panel-title {
-            color: var(--vhs-yellow);
-            font-weight: bold;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .duration-presets {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.5rem;
-            margin-bottom: 0.75rem;
-        }
-        .duration-preset-btn {
-            background: #2a2a2a;
-            border: 2px solid #444;
-            color: #ccc;
-            padding: 0.5rem 0.3rem;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            font-size: 0.8rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            border-radius: 4px;
-        }
-        .duration-preset-btn:hover {
-            border-color: var(--vhs-yellow);
-            color: var(--vhs-yellow);
-        }
-        .duration-preset-btn.active {
-            background: linear-gradient(180deg, #aa8800 0%, #554400 100%);
-            border-color: var(--vhs-yellow);
-            color: #fff;
-            box-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
-        }
+        .fade-duration-btns { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.4rem; margin-bottom: 0.5rem; }
+        .fade-duration-btn { background: #2a2a2a; border: 2px solid #444; color: #ccc; padding: 0.4rem 0.2rem; font-family: 'Courier New', monospace; font-weight: bold; font-size: 0.75rem; text-align: center; cursor: pointer; border-radius: 4px; }
+        .fade-duration-btn.active { background: linear-gradient(180deg, #7733cc 0%, #441188 100%); border-color: var(--vhs-purple); color: #fff; }
+        .duration-panel { background: #222; border: 2px solid #444; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+        .duration-panel-title { color: var(--vhs-yellow); font-weight: bold; font-size: 0.9rem; letter-spacing: 1px; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+        .duration-presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 0.75rem; }
+        .duration-preset-btn { background: #2a2a2a; border: 2px solid #444; color: #ccc; padding: 0.5rem 0.3rem; font-family: 'Courier New', monospace; font-weight: bold; font-size: 0.8rem; text-align: center; cursor: pointer; border-radius: 4px; }
+        .duration-preset-btn.active { background: linear-gradient(180deg, #aa8800 0%, #554400 100%); border-color: var(--vhs-yellow); color: #fff; }
         .duration-preset-btn.whatsapp { border-color: #25D366; }
-        .duration-preset-btn.whatsapp.active {
-            background: linear-gradient(180deg, #25D366 0%, #128C7E 100%);
-            border-color: #25D366;
-        }
-        .duration-preset-btn small {
-            display: block;
-            font-size: 0.65rem;
-            color: #888;
-            margin-top: 2px;
-            font-weight: normal;
-        }
-        .duration-preset-btn.active small { color: rgba(255,255,255,0.8); }
-        .duration-custom {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.75rem;
-        }
-        .duration-custom input {
-            background: #1a1a1a;
-            border: 2px solid #444;
-            color: var(--vhs-yellow);
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            padding: 0.4rem 0.6rem;
-            width: 80px;
-            text-align: center;
-            border-radius: 4px;
-        }
-        .duration-custom input:focus {
-            outline: none;
-            border-color: var(--vhs-yellow);
-            box-shadow: 0 0 8px rgba(255, 204, 0, 0.3);
-        }
-        .duration-custom label {
-            color: #aaa;
-            font-size: 0.85rem;
-            margin: 0;
-        }
-        .video-info-bar {
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 4px;
-            padding: 0.5rem 0.75rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.8rem;
-            margin-bottom: 0.75rem;
-        }
-        .video-info-bar .info-item {
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-        }
+        .duration-preset-btn.whatsapp.active { background: linear-gradient(180deg, #25D366 0%, #128C7E 100%); border-color: #25D366; }
+        .duration-preset-btn small { display: block; font-size: 0.65rem; color: #888; margin-top: 2px; }
+        .duration-custom { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+        .duration-custom input { background: #1a1a1a; border: 2px solid #444; color: var(--vhs-yellow); font-family: 'Courier New', monospace; font-weight: bold; padding: 0.4rem 0.6rem; width: 80px; text-align: center; border-radius: 4px; }
+        .video-info-bar { background: #1a1a1a; border: 1px solid #333; border-radius: 4px; padding: 0.5rem 0.75rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; margin-bottom: 0.75rem; }
         .video-info-bar .info-label { color: #888; }
         .video-info-bar .info-value { color: var(--vhs-green); font-weight: bold; }
-        .duration-warning {
-            background: rgba(255, 100, 0, 0.15);
-            border: 1px solid #ff6400;
-            border-radius: 4px;
-            padding: 0.5rem 0.75rem;
-            color: #ffaa55;
-            font-size: 0.75rem;
-            margin-bottom: 0.75rem;
-            display: none;
-        }
+        .duration-warning { background: rgba(255, 100, 0, 0.15); border: 1px solid #ff6400; border-radius: 4px; padding: 0.5rem 0.75rem; color: #ffaa55; font-size: 0.75rem; margin-bottom: 0.75rem; display: none; }
         .duration-warning.show { display: block; }
-        .duration-warning i { margin-right: 0.3rem; }
-        .export-summary {
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 4px;
-            padding: 0.6rem 0.75rem;
-            margin-bottom: 0.75rem;
-            font-size: 0.8rem;
-        }
-        .export-summary .summary-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.25rem;
-        }
-        .export-summary .summary-row:last-child { margin-bottom: 0; }
+        .export-summary { background: #1a1a1a; border: 1px solid #333; border-radius: 4px; padding: 0.6rem 0.75rem; margin-bottom: 0.75rem; font-size: 0.8rem; }
+        .export-summary .summary-row { display: flex; justify-content: space-between; margin-bottom: 0.25rem; }
         .export-summary .summary-label { color: #888; }
         .export-summary .summary-value { color: var(--vhs-yellow); font-weight: bold; }
-        .titles-panel {
-            background: linear-gradient(135deg, #2e1a1a 0%, #3e1616 100%);
-            border: 2px solid var(--vhs-orange);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            position: relative;
-            overflow: hidden;
-        }
-        .titles-panel::before {
-            content: "NEW";
-            position: absolute;
-            top: 5px; right: 10px;
-            background: var(--vhs-orange);
-            color: #fff;
-            font-size: 0.65rem;
-            font-weight: bold;
-            padding: 2px 8px;
-            border-radius: 3px;
-            letter-spacing: 1px;
-        }
-        .titles-panel-title {
-            color: var(--vhs-orange);
-            font-weight: bold;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .title-input {
-            background: #1a1a1a;
-            border: 2px solid #444;
-            color: #fff;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            padding: 0.6rem;
-            width: 100%;
-            border-radius: 4px;
-            margin-bottom: 0.75rem;
-            resize: vertical;
-            min-height: 60px;
-        }
-        .title-input:focus {
-            outline: none;
-            border-color: var(--vhs-orange);
-            box-shadow: 0 0 8px rgba(255, 136, 0, 0.3);
-        }
-        .title-options {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.5rem;
-            margin-bottom: 0.75rem;
-        }
-        .title-option-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.3rem;
-        }
-        .title-option-label {
-            color: #aaa;
-            font-size: 0.75rem;
-            font-weight: bold;
-        }
-        .title-select {
-            background: #2a2a2a;
-            border: 2px solid #444;
-            color: #fff;
-            padding: 0.4rem;
-            font-family: 'Courier New', monospace;
-            font-size: 0.8rem;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .title-select:focus {
-            outline: none;
-            border-color: var(--vhs-orange);
-        }
-        .title-color-picker {
-            display: flex;
-            gap: 0.3rem;
-            flex-wrap: wrap;
-        }
-        .color-option {
-            width: 30px;
-            height: 30px;
-            border: 2px solid #444;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .color-option:hover {
-            transform: scale(1.1);
-            border-color: #fff;
-        }
-        .color-option.active {
-            border-color: #fff;
-            box-shadow: 0 0 10px rgba(255,255,255,0.5);
-        }
-        .title-mode-toggle {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 0.75rem;
-        }
-        .title-mode-btn {
-            flex: 1;
-            background: #2a2a2a;
-            border: 2px solid #444;
-            color: #aaa;
-            padding: 0.5rem;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            font-size: 0.75rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            border-radius: 4px;
-        }
-        .title-mode-btn:hover {
-            border-color: var(--vhs-orange);
-            color: var(--vhs-orange);
-        }
-        .title-mode-btn.active {
-            background: linear-gradient(180deg, #cc6600 0%, #663300 100%);
-            border-color: var(--vhs-orange);
-            color: #fff;
-        }
-        .title-duration-input {
-            background: #1a1a1a;
-            border: 2px solid #444;
-            color: var(--vhs-orange);
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            padding: 0.4rem 0.6rem;
-            width: 80px;
-            text-align: center;
-            border-radius: 4px;
-        }
-        .title-duration-input:focus {
-            outline: none;
-            border-color: var(--vhs-orange);
-            box-shadow: 0 0 8px rgba(255, 136, 0, 0.3);
-        }
-        .info-text {
-            color: #888;
-            font-size: 0.8rem;
-        }
-        .quality-panel {
-            background: linear-gradient(135deg, #1a2e1a 0%, #163e16 100%);
-            border: 2px solid var(--vhs-green);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-        .quality-panel-title {
-            color: var(--vhs-green);
-            font-weight: bold;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .quality-presets {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.4rem;
-            margin-bottom: 0.75rem;
-        }
-        .quality-preset-btn {
-            background: #2a2a2a;
-            border: 2px solid #444;
-            color: #ccc;
-            padding: 0.5rem 0.3rem;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            font-size: 0.75rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            border-radius: 4px;
-        }
-        .quality-preset-btn:hover {
-            border-color: var(--vhs-green);
-            color: var(--vhs-green);
-        }
-        .quality-preset-btn.active {
-            background: linear-gradient(180deg, #00aa00 0%, #005500 100%);
-            border-color: var(--vhs-green);
-            color: #fff;
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
-        }
-        .quality-preset-btn small {
-            display: block;
-            font-size: 0.6rem;
-            color: #888;
-            margin-top: 2px;
-            font-weight: normal;
-        }
-        .quality-preset-btn.active small {
-            color: rgba(255,255,255,0.8);
-        }
-        .quality-info {
-            background: rgba(0,0,0,0.3);
-            border: 1px solid #333;
-            border-radius: 4px;
-            padding: 0.5rem;
-            font-size: 0.75rem;
-            color: #aaa;
-        }
-        .quality-info strong {
-            color: var(--vhs-green);
-        }
-        .perf-indicator {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(0,0,0,0.8);
-            color: var(--vhs-green);
-            padding: 4px 8px;
-            font-size: 0.75rem;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            border-radius: 3px;
-            border: 1px solid var(--vhs-green);
-            z-index: 25;
-            display: none;
-            pointer-events: none;
-        }
+        .titles-panel { background: linear-gradient(135deg, #2e1a1a 0%, #3e1616 100%); border: 2px solid var(--vhs-orange); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; position: relative; overflow: hidden; }
+        .titles-panel::before { content: "NEW"; position: absolute; top: 5px; right: 10px; background: var(--vhs-orange); color: #fff; font-size: 0.65rem; font-weight: bold; padding: 2px 8px; border-radius: 3px; }
+        .titles-panel-title { color: var(--vhs-orange); font-weight: bold; font-size: 0.9rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+        .title-input { background: #1a1a1a; border: 2px solid #444; color: #fff; font-family: 'Courier New', monospace; padding: 0.6rem; width: 100%; border-radius: 4px; margin-bottom: 0.75rem; resize: vertical; min-height: 60px; }
+        .title-options { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.75rem; }
+        .title-option-label { color: #aaa; font-size: 0.75rem; font-weight: bold; }
+        .title-select { background: #2a2a2a; border: 2px solid #444; color: #fff; padding: 0.4rem; font-family: 'Courier New', monospace; font-size: 0.8rem; border-radius: 4px; }
+        .title-color-picker { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+        .color-option { width: 30px; height: 30px; border: 2px solid #444; border-radius: 4px; cursor: pointer; }
+        .color-option.active { border-color: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.5); }
+        .title-mode-toggle { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
+        .title-mode-btn { flex: 1; background: #2a2a2a; border: 2px solid #444; color: #aaa; padding: 0.5rem; font-family: 'Courier New', monospace; font-weight: bold; font-size: 0.75rem; text-align: center; cursor: pointer; border-radius: 4px; }
+        .title-mode-btn.active { background: linear-gradient(180deg, #cc6600 0%, #663300 100%); border-color: var(--vhs-orange); color: #fff; }
+        .title-duration-input { background: #1a1a1a; border: 2px solid #444; color: var(--vhs-orange); font-family: 'Courier New', monospace; font-weight: bold; padding: 0.4rem 0.6rem; width: 80px; text-align: center; border-radius: 4px; }
+        .info-text { color: #888; font-size: 0.8rem; }
+        .quality-presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; margin-bottom: 0.75rem; }
+        .quality-preset-btn { background: #2a2a2a; border: 2px solid #444; color: #ccc; padding: 0.5rem 0.3rem; font-family: 'Courier New', monospace; font-weight: bold; font-size: 0.75rem; text-align: center; cursor: pointer; border-radius: 4px; }
+        .quality-preset-btn.active { background: linear-gradient(180deg, #00aa00 0%, #005500 100%); border-color: var(--vhs-green); color: #fff; }
+        .quality-preset-btn small { display: block; font-size: 0.6rem; color: #888; margin-top: 2px; }
+        .quality-info { background: rgba(0,0,0,0.3); border: 1px solid #333; border-radius: 4px; padding: 0.5rem; font-size: 0.75rem; color: #aaa; }
+        .quality-info strong { color: var(--vhs-green); }
+        .perf-indicator { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.8); color: var(--vhs-green); padding: 4px 8px; font-size: 0.75rem; font-weight: bold; border-radius: 3px; border: 1px solid var(--vhs-green); z-index: 25; display: none; }
         .perf-indicator.active { display: block; }
-        .perf-indicator.warning {
-            color: var(--vhs-yellow);
-            border-color: var(--vhs-yellow);
-        }
-        .perf-indicator.critical {
-            color: var(--vhs-red);
-            border-color: var(--vhs-red);
-            animation: perfBlink 0.5s infinite;
-        }
-        @keyframes perfBlink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        .perf-mode-badge {
-            display: none;
-            background: var(--vhs-yellow);
-            color: #000;
-            padding: 2px 6px;
-            font-size: 0.65rem;
-            font-weight: bold;
-            border-radius: 3px;
-            margin-left: 5px;
-        }
+        .perf-mode-badge { display: none; background: var(--vhs-yellow); color: #000; padding: 2px 6px; font-size: 0.65rem; font-weight: bold; border-radius: 3px; margin-left: 5px; }
         .perf-mode-badge.active { display: inline-block; }
-        @media (max-width: 991px) {
-            .control-panel { margin-top: 1rem; }
-            .duration-presets { grid-template-columns: repeat(2, 1fr); }
-            .fade-duration-btns { grid-template-columns: repeat(3, 1fr); }
-            .nav-buttons { grid-template-columns: repeat(4, 1fr); }
-            .title-options { grid-template-columns: 1fr; }
-            .quality-presets { grid-template-columns: repeat(2, 1fr); }
+        @media (max-width: 991px) { 
+            .control-panel { margin-top: 1rem; } 
+            .duration-presets, .quality-presets { grid-template-columns: repeat(2, 1fr); } 
+            .fade-duration-btns { grid-template-columns: repeat(3, 1fr); } 
+            .nav-buttons { grid-template-columns: repeat(4, 1fr); } 
+            .title-options { grid-template-columns: 1fr; } 
         }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #1a1a1a; }
-        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--vhs-green); }
     </style>
 </head>
 <body>
@@ -1160,12 +186,8 @@
     <header class="app-header">
         <div class="container">
             <div class="d-flex justify-content-between align-items-center">
-                <h1 class="app-title h3 mb-0">
-                    <i class="bi bi-camera-video-fill"></i> VHS EFFECTS STUDIO
-                </h1>
-                <span class="text-muted d-none d-md-block small">
-                    Estampado de efectos sobre video
-                </span>
+                <h1 class="app-title h3 mb-0"><i class="bi bi-camera-video-fill"></i> VHS EFFECTS STUDIO</h1>
+                <span class="text-muted d-none d-md-block small">Estampado de efectos sobre video</span>
             </div>
         </div>
     </header>
@@ -1176,31 +198,19 @@
                 <div class="video-wrapper" id="videoWrapper">
                     <div class="upload-area" id="uploadArea">
                         <div class="text-center p-4">
-                            <div class="upload-icon">
-                                <i class="bi bi-cloud-arrow-up"></i>
-                            </div>
+                            <div class="upload-icon"><i class="bi bi-cloud-arrow-up"></i></div>
                             <h4 class="text-white mb-2">CARGA TU VIDEO</h4>
-                            <p class="text-muted mb-3">
-                                Arrastra un archivo aquí o haz clic para seleccionar
-                            </p>
-                            <small class="info-text">
-                                Formatos soportados: MP4, WebM, MOV, AVI
-                            </small>
+                            <p class="text-muted mb-3">Arrastra un archivo aquí o haz clic para seleccionar</p>
+                            <small class="info-text">Formatos soportados: MP4, WebM, MOV, AVI</small>
                             <input type="file" id="videoInput" accept="video/*" hidden>
                         </div>
                     </div>
-
-                    <div class="recording-banner" id="recordingBanner">
-                        <i class="bi bi-record-circle"></i> GRABANDO EXPORTACIÓN...
-                    </div>
-
-                    <div class="perf-indicator" id="perfIndicator">
-                        <span id="perfFps">--</span> FPS
-                        <span class="perf-mode-badge" id="perfModeBadge">MODO RENDIMIENTO</span>
-                    </div>
-
-                    <video id="videoPlayer" playsinline></video>
-
+                    <div class="recording-banner" id="recordingBanner"><i class="bi bi-record-circle"></i> GRABANDO...</div>
+                    <div class="perf-indicator" id="perfIndicator"><span id="perfFps">--</span> FPS <span class="perf-mode-badge" id="perfModeBadge">MODO RENDIMIENTO</span></div>
+                    
+                    <!-- ⭐ CLAVE: crossorigin="anonymous" para permitir captura de audio -->
+                    <video id="videoPlayer" playsinline crossorigin="anonymous"></video>
+                    
                     <div class="vhs-overlay scanlines-overlay" id="scanlinesOverlay"></div>
                     <div class="vhs-overlay noise-overlay" id="noiseOverlay"></div>
                     <div class="vhs-overlay vignette-overlay" id="vignetteOverlay"></div>
@@ -1209,102 +219,51 @@
                     <div class="vhs-timestamp" id="timestampOverlay">PLAY  00:00:00</div>
                     <div class="rec-indicator" id="recIndicator">REC</div>
                     <div class="play-indicator" id="playIndicator">▶ PLAY</div>
-                    <div class="title-overlay" id="titleOverlay">
-                        <div class="title-text" id="titleText"></div>
-                    </div>
+                    <div class="title-overlay" id="titleOverlay"><div class="title-text" id="titleText"></div></div>
                 </div>
 
                 <div class="navigation-panel" id="navigationPanel" style="display: none;">
-                    <div class="navigation-panel-title">
-                        <i class="bi bi-scissors"></i> NAVEGACIÓN Y PUNTO DE INICIO
-                    </div>
-
+                    <div class="navigation-panel-title"><i class="bi bi-scissors"></i> NAVEGACIÓN Y PUNTO DE INICIO</div>
                     <div class="time-display">
                         <span class="time-current" id="timeCurrent">0:00</span>
                         <span class="time-total" id="timeTotal">/ 0:00</span>
                     </div>
-
                     <div class="timeline-container" id="timelineContainer">
                         <div class="timeline-range" id="timelineRange"></div>
                         <div class="timeline-progress" id="timelineProgress"></div>
                         <div class="timeline-cursor" id="timelineCursor"></div>
                         <div class="timeline-start-marker" id="timelineStartMarker"></div>
                     </div>
-
                     <div class="nav-buttons">
-                        <button class="nav-btn" data-skip="-30">
-                            <i class="bi bi-skip-backward-fill"></i>
-                            -30s
-                        </button>
-                        <button class="nav-btn" data-skip="-10">
-                            <i class="bi bi-skip-backward"></i>
-                            -10s
-                        </button>
-                        <button class="nav-btn" data-skip="-5">
-                            <i class="bi bi-caret-left-fill"></i>
-                            -5s
-                        </button>
-                        <button class="nav-btn" data-skip="5">
-                            <i class="bi bi-caret-right-fill"></i>
-                            +5s
-                        </button>
-                        <button class="nav-btn" data-skip="10">
-                            <i class="bi bi-skip-forward"></i>
-                            +10s
-                        </button>
-                        <button class="nav-btn" data-skip="30">
-                            <i class="bi bi-skip-forward-fill"></i>
-                            +30s
-                        </button>
-                        <button class="nav-btn" id="btnMarkStart" style="background: linear-gradient(180deg, #aa8800 0%, #554400 100%); border-color: var(--vhs-yellow); color: #fff;">
-                            <i class="bi bi-flag-fill"></i>
-                            INICIO
-                        </button>
+                        <button class="nav-btn" data-skip="-30"><i class="bi bi-skip-backward-fill"></i>-30s</button>
+                        <button class="nav-btn" data-skip="-10"><i class="bi bi-skip-backward"></i>-10s</button>
+                        <button class="nav-btn" data-skip="-5"><i class="bi bi-caret-left-fill"></i>-5s</button>
+                        <button class="nav-btn" data-skip="5"><i class="bi bi-caret-right-fill"></i>+5s</button>
+                        <button class="nav-btn" data-skip="10"><i class="bi bi-skip-forward"></i>+10s</button>
+                        <button class="nav-btn" data-skip="30"><i class="bi bi-skip-forward-fill"></i>+30s</button>
+                        <button class="nav-btn" id="btnMarkStart" style="background: linear-gradient(180deg, #aa8800 0%, #554400 100%); border-color: var(--vhs-yellow); color: #fff;"><i class="bi bi-flag-fill"></i>INICIO</button>
                     </div>
-
                     <div class="start-point-controls">
-                        <label class="start-point-label">
-                            <i class="bi bi-flag-fill" style="color: var(--vhs-yellow);"></i> Punto de inicio:
-                        </label>
-                        <input type="number" class="start-point-input" id="startPointInput" min="0" step="1" value="0" placeholder="0">
+                        <label class="start-point-label"><i class="bi bi-flag-fill" style="color: var(--vhs-yellow);"></i> Punto de inicio:</label>
+                        <input type="number" class="start-point-input" id="startPointInput" min="0" step="1" value="0">
                         <span style="color: #888; font-size: 0.8rem;">segundos</span>
-                        <button class="start-point-btn" id="btnSetStart">
-                            <i class="bi bi-check-circle"></i> Aplicar
-                        </button>
+                        <button class="start-point-btn" id="btnSetStart"><i class="bi bi-check-circle"></i> Aplicar</button>
                     </div>
-
                     <div class="export-range-info">
-                        <div class="range-item">
-                            <span class="range-label">Desde:</span>
-                            <span class="range-value" id="rangeStart">0:00</span>
-                        </div>
-                        <div class="range-item">
-                            <span class="range-label">Hasta:</span>
-                            <span class="range-value" id="rangeEnd">0:00</span>
-                        </div>
-                        <div class="range-item">
-                            <span class="range-label">Duración:</span>
-                            <span class="range-value" id="rangeDuration">0s</span>
-                        </div>
+                        <div><span class="range-label">Desde:</span> <span class="range-value" id="rangeStart">0:00</span></div>
+                        <div><span class="range-label">Hasta:</span> <span class="range-value" id="rangeEnd">0:00</span></div>
+                        <div><span class="range-label">Duración:</span> <span class="range-value" id="rangeDuration">0s</span></div>
                     </div>
                 </div>
 
                 <div class="control-panel mt-3">
                     <div class="d-flex gap-2 flex-wrap">
-                        <button class="action-btn flex-fill" id="btnPlayPause" disabled>
-                            <i class="bi bi-play-fill"></i> REPRODUCIR
-                        </button>
-                        <button class="action-btn flex-fill" id="btnStop" disabled>
-                            <i class="bi bi-stop-fill"></i> DETENER
-                        </button>
-                        <button class="action-btn flex-fill" id="btnChangeVideo" disabled>
-                            <i class="bi bi-arrow-repeat"></i> CAMBIAR VIDEO
-                        </button>
+                        <button class="action-btn flex-fill" id="btnPlayPause" disabled><i class="bi bi-play-fill"></i> REPRODUCIR</button>
+                        <button class="action-btn flex-fill" id="btnStop" disabled><i class="bi bi-stop-fill"></i> DETENER</button>
+                        <button class="action-btn flex-fill" id="btnChangeVideo" disabled><i class="bi bi-arrow-repeat"></i> CAMBIAR</button>
                     </div>
                     <div class="mt-3">
-                        <label class="form-label text-muted small mb-1">
-                            VOLUMEN PREVIEW: <span id="volumeValue">80</span>%
-                        </label>
+                        <label class="form-label text-muted small mb-1">VOLUMEN PREVIEW: <span id="volumeValue">80</span>%</label>
                         <input type="range" class="form-range" id="volumeSlider" min="0" max="100" value="80">
                     </div>
                 </div>
@@ -1312,103 +271,47 @@
 
             <div class="col-lg-4">
                 <div class="control-panel">
-                    <h5 class="panel-title">
-                        <i class="bi bi-sliders"></i> EFECTOS VHS
-                    </h5>
-
-                    <button class="effect-toggle" data-effect="scanlines">
-                        <span><i class="bi bi-list"></i> Scanlines</span>
-                        <span class="status-dot"></span>
-                    </button>
-                    <button class="effect-toggle" data-effect="noise">
-                        <span><i class="bi bi-stars"></i> Ruido/Niebla</span>
-                        <span class="status-dot"></span>
-                    </button>
-                    <button class="effect-toggle" data-effect="trackingshake">
-                        <span><i class="bi bi-arrows-move"></i> Tracking Shake (Fijo Abajo)</span>
-                        <span class="status-dot"></span>
-                    </button>
-                    <button class="effect-toggle" data-effect="rollingbar">
-                        <span><i class="bi bi-arrow-down-up"></i> Rolling Bar (Recorre Pantalla)</span>
-                        <span class="status-dot"></span>
-                    </button>
-                    <button class="effect-toggle" data-effect="chromatic">
-                        <span><i class="bi bi-rainbow"></i> Aberración Cromática</span>
-                        <span class="status-dot"></span>
-                    </button>
-                    <button class="effect-toggle" data-effect="vignette">
-                        <span><i class="bi bi-circle"></i> Viñeta</span>
-                        <span class="status-dot"></span>
-                    </button>
-                    <button class="effect-toggle" data-effect="shake">
-                        <span><i class="bi bi-arrows-angle-expand"></i> Temblor Video</span>
-                        <span class="status-dot"></span>
-                    </button>
-                    <button class="effect-toggle" data-effect="colorfade">
-                        <span><i class="bi bi-palette"></i> Color Desvanecido</span>
-                        <span class="status-dot"></span>
-                    </button>
-                    <button class="effect-toggle" data-effect="sepia">
-                        <span><i class="bi bi-film"></i> Sepia (Cinta Muy Antigua)</span>
-                        <span class="status-dot"></span>
-                    </button>
-                    <button class="effect-toggle" data-effect="glitch">
-                        <span><i class="bi bi-lightning"></i> Glitch</span>
-                        <span class="status-dot"></span>
-                    </button>
-                    <button class="effect-toggle" data-effect="timestamp">
-                        <span><i class="bi bi-clock"></i> Timestamp VHS</span>
-                        <span class="status-dot"></span>
-                    </button>
-                    <button class="effect-toggle" data-effect="rec">
-                        <span><i class="bi bi-record-circle"></i> Indicador REC</span>
-                        <span class="status-dot"></span>
-                    </button>
+                    <h5 class="panel-title"><i class="bi bi-sliders"></i> EFECTOS VHS</h5>
+                    <button class="effect-toggle" data-effect="scanlines"><span><i class="bi bi-list"></i> Scanlines</span><span class="status-dot"></span></button>
+                    <button class="effect-toggle" data-effect="noise"><span><i class="bi bi-stars"></i> Ruido/Niebla</span><span class="status-dot"></span></button>
+                    <button class="effect-toggle" data-effect="trackingshake"><span><i class="bi bi-arrows-move"></i> Tracking Shake</span><span class="status-dot"></span></button>
+                    <button class="effect-toggle" data-effect="rollingbar"><span><i class="bi bi-arrow-down-up"></i> Rolling Bar</span><span class="status-dot"></span></button>
+                    <button class="effect-toggle" data-effect="chromatic"><span><i class="bi bi-rainbow"></i> Aberración Cromática</span><span class="status-dot"></span></button>
+                    <button class="effect-toggle" data-effect="vignette"><span><i class="bi bi-circle"></i> Viñeta</span><span class="status-dot"></span></button>
+                    <button class="effect-toggle" data-effect="shake"><span><i class="bi bi-arrows-angle-expand"></i> Temblor</span><span class="status-dot"></span></button>
+                    <button class="effect-toggle" data-effect="colorfade"><span><i class="bi bi-palette"></i> Color Desvanecido</span><span class="status-dot"></span></button>
+                    <button class="effect-toggle" data-effect="sepia"><span><i class="bi bi-film"></i> Sepia</span><span class="status-dot"></span></button>
+                    <button class="effect-toggle" data-effect="glitch"><span><i class="bi bi-lightning"></i> Glitch</span><span class="status-dot"></span></button>
+                    <button class="effect-toggle" data-effect="timestamp"><span><i class="bi bi-clock"></i> Timestamp VHS</span><span class="status-dot"></span></button>
+                    <button class="effect-toggle" data-effect="rec"><span><i class="bi bi-record-circle"></i> Indicador REC</span><span class="status-dot"></span></button>
 
                     <div class="mt-3 mb-3">
-                        <label class="text-muted small d-block mb-2">PRESETS RÁPIDOS:</label>
+                        <label class="text-muted small d-block mb-2">PRESETS:</label>
                         <div class="d-flex flex-wrap gap-2">
                             <button class="preset-btn" data-preset="light">Ligero</button>
                             <button class="preset-btn" data-preset="classic">Clásico</button>
                             <button class="preset-btn" data-preset="heavy">Intenso</button>
                             <button class="preset-btn" data-preset="horror">Horror</button>
                             <button class="preset-btn" data-preset="ancient">Muy Antiguo</button>
-                            <button class="preset-btn" data-preset="subtitle-killer">Rompe Subtítulos</button>
-                            <button class="preset-btn" data-preset="bad-tracking">Bad Tracking 90s</button>
                             <button class="preset-btn" data-preset="none">Ninguno</button>
                         </div>
                     </div>
 
                     <div class="mt-3">
-                        <label class="intensity-label d-block mb-2">
-                            <i class="bi bi-speedometer2"></i> INTENSIDAD GENERAL
-                        </label>
+                        <label class="intensity-label d-block mb-2"><i class="bi bi-speedometer2"></i> INTENSIDAD</label>
                         <input type="range" class="form-range" id="intensitySlider" min="0" max="100" value="70">
-                        <div class="d-flex justify-content-between">
-                            <small class="text-muted">Sutil</small>
-                            <small class="text-muted">Extremo</small>
-                        </div>
                     </div>
 
                     <div class="mt-4 pt-3 border-top border-secondary">
                         <div class="titles-panel">
-                            <div class="titles-panel-title">
-                                <i class="bi bi-type"></i> TÍTULOS
-                            </div>
-
+                            <div class="titles-panel-title"><i class="bi bi-type"></i> TÍTULOS</div>
                             <textarea class="title-input" id="titleInput" placeholder="Escribe tu título aquí..."></textarea>
-
                             <div class="title-mode-toggle">
-                                <button class="title-mode-btn active" data-mode="intro">
-                                    <i class="bi bi-play-circle"></i> Intro
-                                </button>
-                                <button class="title-mode-btn" data-mode="fixed">
-                                    <i class="bi bi-pin-angle"></i> Fijo
-                                </button>
+                                <button class="title-mode-btn active" data-mode="intro">Intro</button>
+                                <button class="title-mode-btn" data-mode="fixed">Fijo</button>
                             </div>
-
                             <div class="title-options">
-                                <div class="title-option-group">
+                                <div>
                                     <label class="title-option-label">Estilo:</label>
                                     <select class="title-select" id="titleStyle">
                                         <option value="classic">Clásico VHS</option>
@@ -1419,8 +322,7 @@
                                         <option value="glitch">Glitch</option>
                                     </select>
                                 </div>
-
-                                <div class="title-option-group">
+                                <div>
                                     <label class="title-option-label">Posición:</label>
                                     <select class="title-select" id="titlePosition">
                                         <option value="top">Arriba</option>
@@ -1428,8 +330,7 @@
                                         <option value="bottom">Abajo</option>
                                     </select>
                                 </div>
-
-                                <div class="title-option-group">
+                                <div>
                                     <label class="title-option-label">Tamaño:</label>
                                     <select class="title-select" id="titleSize">
                                         <option value="small">Pequeño</option>
@@ -1438,99 +339,53 @@
                                         <option value="xlarge">Extra Grande</option>
                                     </select>
                                 </div>
-
-                                <div class="title-option-group">
+                                <div>
                                     <label class="title-option-label">Color:</label>
-                                    <div class="title-color-picker" id="titleColorPicker">
+                                    <div class="title-color-picker">
                                         <div class="color-option active" data-color="#ffffff" style="background: #ffffff;"></div>
                                         <div class="color-option" data-color="#00ff00" style="background: #00ff00;"></div>
                                         <div class="color-option" data-color="#ff0040" style="background: #ff0040;"></div>
                                         <div class="color-option" data-color="#0080ff" style="background: #0080ff;"></div>
                                         <div class="color-option" data-color="#ffcc00" style="background: #ffcc00;"></div>
-                                        <div class="color-option" data-color="#ff8800" style="background: #ff8800;"></div>
-                                        <div class="color-option" data-color="#cc66ff" style="background: #cc66ff;"></div>
                                     </div>
                                 </div>
                             </div>
-
                             <div id="titleDurationGroup">
-                                <label class="title-option-label">Duración de intro:</label>
-                                <div class="d-flex align-items-center gap-2">
-                                    <input type="number" class="title-duration-input" id="titleDuration" min="1" max="30" value="3">
-                                    <span style="color: #888; font-size: 0.8rem;">segundos</span>
-                                </div>
-                            </div>
-
-                            <div class="export-summary mt-3" style="border-color: #444;">
-                                <div class="summary-row">
-                                    <span class="summary-label">Título:</span>
-                                    <span class="summary-value" id="summaryTitle" style="color: #666;">Desactivado</span>
-                                </div>
-                                <div class="summary-row">
-                                    <span class="summary-label">Modo:</span>
-                                    <span class="summary-value" id="summaryTitleMode" style="color: #666;">-</span>
-                                </div>
+                                <label class="title-option-label">Duración intro:</label>
+                                <input type="number" class="title-duration-input" id="titleDuration" min="1" max="30" value="3">
+                                <span style="color: #888; font-size: 0.8rem;">s</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="mt-3">
                         <div class="volume-panel">
-                            <div class="volume-panel-title">
-                                <i class="bi bi-volume-up-fill"></i> VOLUMEN DE EXPORTACIÓN
-                            </div>
+                            <div class="volume-panel-title"><i class="bi bi-volume-up-fill"></i> VOLUMEN EXPORTACIÓN</div>
                             <div class="volume-row">
-                                <label><i class="bi bi-speaker-fill"></i> Audio:</label>
+                                <label>Audio:</label>
                                 <input type="range" class="form-range" id="exportVolumeSlider" min="0" max="100" value="100">
                                 <span class="volume-value" id="exportVolumeValue">100%</span>
-                                <button class="volume-mute-btn" id="exportMuteBtn">
-                                    <i class="bi bi-volume-mute-fill"></i>
-                                </button>
+                                <button class="volume-mute-btn" id="exportMuteBtn"><i class="bi bi-volume-mute-fill"></i></button>
                             </div>
-                            <small class="info-text">
-                                <i class="bi bi-info-circle"></i>
-                                Independiente del volumen de preview.
-                            </small>
                         </div>
                     </div>
 
                     <div class="mt-3">
                         <div class="quality-panel">
-                            <div class="quality-panel-title">
-                                <i class="bi bi-speedometer"></i> CALIDAD DE EXPORTACIÓN
-                            </div>
+                            <div class="quality-panel-title"><i class="bi bi-speedometer"></i> CALIDAD</div>
                             <div class="quality-presets">
-                                <button class="quality-preset-btn" data-quality="low">
-                                    Baja
-                                    <small>480p · 15fps</small>
-                                </button>
-                                <button class="quality-preset-btn recommended active" data-quality="medium">
-                                    Media ★
-                                    <small>720p · 24fps</small>
-                                </button>
-                                <button class="quality-preset-btn" data-quality="high">
-                                    Alta
-                                    <small>1080p · 30fps</small>
-                                </button>
-                            </div>
-                            <div class="quality-info">
-                                <i class="bi bi-check-circle-fill"></i> <strong>Sincronización perfecta:</strong> El navegador maneja el timing automáticamente.
+                                <button class="quality-preset-btn" data-quality="low">Baja<small>480p · 15fps</small></button>
+                                <button class="quality-preset-btn active" data-quality="medium">Media ★<small>720p · 24fps</small></button>
+                                <button class="quality-preset-btn" data-quality="high">Alta<small>1080p · 30fps</small></button>
                             </div>
                         </div>
                     </div>
 
                     <div class="mt-3">
                         <div class="pro-panel">
-                            <div class="pro-panel-title">
-                                <i class="bi bi-stars"></i> FINALIZACIÓN PROFESIONAL
-                            </div>
-
-                            <button class="fade-toggle" id="fadeInToggle">
-                                <span><i class="bi bi-sunrise-fill"></i> Fade In (Inicio)</span>
-                                <span class="status-dot"></span>
-                            </button>
+                            <div class="pro-panel-title"><i class="bi bi-stars"></i> FINALIZACIÓN</div>
+                            <button class="fade-toggle" id="fadeInToggle"><span>Fade In</span><span class="status-dot"></span></button>
                             <div class="fade-options" id="fadeInOptions">
-                                <label class="fade-label">Duración del fade in:</label>
                                 <div class="fade-duration-btns">
                                     <button class="fade-duration-btn" data-fade="in" data-duration="0.5">0.5s</button>
                                     <button class="fade-duration-btn active" data-fade="in" data-duration="1">1s</button>
@@ -1538,13 +393,8 @@
                                     <button class="fade-duration-btn" data-fade="in" data-duration="3">3s</button>
                                 </div>
                             </div>
-
-                            <button class="fade-toggle active" id="fadeOutToggle">
-                                <span><i class="bi bi-sunset-fill"></i> Fade Out (Final)</span>
-                                <span class="status-dot"></span>
-                            </button>
+                            <button class="fade-toggle active" id="fadeOutToggle"><span>Fade Out</span><span class="status-dot"></span></button>
                             <div class="fade-options show" id="fadeOutOptions">
-                                <label class="fade-label">Duración del fade out:</label>
                                 <div class="fade-duration-btns">
                                     <button class="fade-duration-btn" data-fade="out" data-duration="0.5">0.5s</button>
                                     <button class="fade-duration-btn" data-fade="out" data-duration="1">1s</button>
@@ -1553,141 +403,43 @@
                                     <button class="fade-duration-btn" data-fade="out" data-duration="5">5s</button>
                                 </div>
                             </div>
-
-                            <div class="export-summary mt-3" style="border-color: #444;">
-                                <div class="summary-row">
-                                    <span class="summary-label">Fade In:</span>
-                                    <span class="summary-value" id="summaryFadeIn" style="color: #666;">Desactivado</span>
-                                </div>
-                                <div class="summary-row">
-                                    <span class="summary-label">Fade Out:</span>
-                                    <span class="summary-value" id="summaryFadeOut" style="color: var(--vhs-purple);">2s</span>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
                     <div class="mt-3">
                         <div class="duration-panel">
-                            <div class="duration-panel-title">
-                                <i class="bi bi-clock-history"></i> DURACIÓN DE EXPORTACIÓN
-                            </div>
-
+                            <div class="duration-panel-title"><i class="bi bi-clock-history"></i> DURACIÓN</div>
                             <div class="video-info-bar" id="videoInfoBar" style="display: none;">
-                                <div class="info-item">
-                                    <span class="info-label">Original:</span>
-                                    <span class="info-value" id="videoOriginalDuration">--:--</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Exportar:</span>
-                                    <span class="info-value" id="videoExportDuration">--:--</span>
-                                </div>
+                                <div><span class="info-label">Original:</span> <span class="info-value" id="videoOriginalDuration">--:--</span></div>
+                                <div><span class="info-label">Exportar:</span> <span class="info-value" id="videoExportDuration">--:--</span></div>
                             </div>
-
-                            <div class="duration-warning" id="durationWarning">
-                                <i class="bi bi-exclamation-triangle"></i>
-                                El rango excede el video. Se ajustará automáticamente.
-                            </div>
-
+                            <div class="duration-warning" id="durationWarning"><i class="bi bi-exclamation-triangle"></i> Rango excede el video.</div>
                             <div class="duration-presets">
-                                <button class="duration-preset-btn" data-duration="15">
-                                    15s
-                                    <small>Estados</small>
-                                </button>
-                                <button class="duration-preset-btn" data-duration="30">
-                                    30s
-                                    <small>Historias</small>
-                                </button>
-                                <button class="duration-preset-btn" data-duration="60">
-                                    60s
-                                    <small>1 minuto</small>
-                                </button>
-                                <button class="duration-preset-btn whatsapp active" data-duration="90">
-                                    90s
-                                    <small>WhatsApp ★</small>
-                                </button>
-                                <button class="duration-preset-btn" data-duration="180">
-                                    3 min
-                                    <small>Redes</small>
-                                </button>
-                                <button class="duration-preset-btn" data-duration="full">
-                                    Completo
-                                    <small>Sin corte</small>
-                                </button>
+                                <button class="duration-preset-btn" data-duration="15">15s<small>Estados</small></button>
+                                <button class="duration-preset-btn" data-duration="30">30s<small>Historias</small></button>
+                                <button class="duration-preset-btn" data-duration="60">60s<small>1 min</small></button>
+                                <button class="duration-preset-btn whatsapp active" data-duration="90">90s<small>WhatsApp</small></button>
+                                <button class="duration-preset-btn" data-duration="180">3 min<small>Redes</small></button>
+                                <button class="duration-preset-btn" data-duration="full">Completo<small>Sin corte</small></button>
                             </div>
-
                             <div class="duration-custom">
-                                <label for="customDuration">
-                                    <i class="bi bi-pencil-square"></i> Personalizado:
-                                </label>
-                                <input type="number" id="customDuration" min="1" max="3600" placeholder="45" step="1">
-                                <span style="color: #888; font-size: 0.85rem;">segundos</span>
+                                <label style="color: #aaa; font-size: 0.85rem;">Personalizado:</label>
+                                <input type="number" id="customDuration" min="1" max="3600" placeholder="45">
+                                <span style="color: #888; font-size: 0.85rem;">s</span>
                             </div>
-
                             <div class="export-summary">
-                                <div class="summary-row">
-                                    <span class="summary-label">Modo:</span>
-                                    <span class="summary-value" id="summaryMode">WhatsApp (90s)</span>
-                                </div>
-                                <div class="summary-row">
-                                    <span class="summary-label">Duración final:</span>
-                                    <span class="summary-value" id="summaryDuration">90s</span>
-                                </div>
-                                <div class="summary-row">
-                                    <span class="summary-label">Formato:</span>
-                                    <span class="summary-value">WebM</span>
-                                </div>
+                                <div class="summary-row"><span class="summary-label">Modo:</span><span class="summary-value" id="summaryMode">WhatsApp (90s)</span></div>
+                                <div class="summary-row"><span class="summary-label">Duración:</span><span class="summary-value" id="summaryDuration">90s</span></div>
+                                <div class="summary-row"><span class="summary-label">Formato:</span><span class="summary-value" id="summaryFormat">MP4/WebM</span></div>
                             </div>
                         </div>
 
-                        <h6 class="text-warning mb-3">
-                            <i class="bi bi-download"></i> EXPORTAR
-                        </h6>
-                        <button class="action-btn btn-export" id="btnExport" disabled>
-                            <i class="bi bi-film"></i> EXPORTAR VIDEO CON EFECTOS
-                        </button>
-                        <small class="info-text d-block mt-2">
-                            <i class="bi bi-info-circle"></i> 
-                            Se grabará el video con todos los efectos, títulos, fades y volumen aplicados.
-                        </small>
+                        <button class="action-btn btn-export" id="btnExport" disabled><i class="bi bi-film"></i> EXPORTAR VIDEO</button>
                         <div id="exportProgress" class="mt-2" style="display: none;">
                             <div class="progress" style="height: 20px; background: #222;">
-                                <div class="progress-bar bg-danger progress-bar-striped progress-bar-animated" 
-                                     id="exportProgressBar" style="width: 0%">
-                                    0%
-                                </div>
+                                <div class="progress-bar bg-danger progress-bar-striped progress-bar-animated" id="exportProgressBar" style="width: 0%">0%</div>
                             </div>
-                            <small class="text-muted d-block mt-1" id="exportStatus">
-                                Preparando...
-                            </small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="control-panel">
-                    <h5 class="panel-title">
-                        <i class="bi bi-info-circle"></i> CÓMO FUNCIONA
-                    </h5>
-                    <div class="row">
-                        <div class="col-md-3 mb-3">
-                            <h6 class="text-success">1. CARGA VIDEO</h6>
-                            <p class="info-text mb-0">Arrastra o selecciona. 100% local.</p>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <h6 class="text-success">2. ELIGE INICIO</h6>
-                            <p class="info-text mb-0">Usa los botones o arrastra el marcador.</p>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <h6 class="text-success">3. CONFIGURA</h6>
-                            <p class="info-text mb-0">Efectos, títulos, calidad y duración.</p>
-                        </div>
-                        <div class="col-md-3 mb-0">
-                            <h6 class="text-success">4. EXPORTA</h6>
-                            <p class="info-text mb-0">Descarga el video profesional.</p>
+                            <small class="text-muted d-block mt-1" id="exportStatus">Preparando...</small>
                         </div>
                     </div>
                 </div>
@@ -1695,80 +447,53 @@
         </div>
 
         <footer class="text-center text-muted py-4 mt-4 border-top border-secondary">
-            <small>
-                <i class="bi bi-camera-video-fill text-success"></i> 
-                VHS Effects Studio - Generación VHS → DVD → Digital
-            </small>
+            <small><i class="bi bi-camera-video-fill text-success"></i> VHS Effects Studio</small>
         </footer>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
-                         || window.innerWidth < 768;
-        
-        console.log('Dispositivo:', isMobile ? 'MÓVIL' : 'DESKTOP');
+        // ================================================================
+        // VARIABLES GLOBALES
+        // ================================================================
+        let exportCanvas = null;
+        let exportCtx = null;
+        let exportAnimationId = null;
+        let exportIsPlaying = false;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let autoStopTimeout = null;
+        let audioCtx = null;
+        let audioDestination = null;
+        let gainNode = null;
+        let sourceNode = null;
+        let noiseImageData = null;
+        let lastFrameTimestamp = 0;
+        let fpsHistory = [];
+        let fpsUpdateCounter = 0;
+        let framesRendered = 0;
+        let videoSourceCreated = false;
+
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+        console.log('🎬 Dispositivo:', isMobile ? 'MÓVIL' : 'DESKTOP');
 
         const state = {
-            videoLoaded: false,
-            videoDuration: 0,
-            videoWidth: 0,
-            videoHeight: 0,
-            videoAspect: 16/9,
-            isPortrait: false,
-            effects: {
-                scanlines: false, noise: false, trackingshake: false,
-                rollingbar: false, chromatic: false, vignette: false,
-                shake: false, colorfade: false, sepia: false, glitch: false,
-                timestamp: false, rec: false
-            },
-            intensity: 70,
-            isRecording: false,
-            durationMode: 'preset',
-            selectedDuration: 90,
-            effectiveDuration: 90,
-            fadeIn: { enabled: false, duration: 1 },
-            fadeOut: { enabled: true, duration: 2 },
-            exportVolume: 100,
-            exportMuted: false,
-            startPoint: 0,
-            exportStartTime: 0,
-            exportEndTime: 0,
-            title: {
-                enabled: false,
-                text: '',
-                mode: 'intro',
-                style: 'classic',
-                position: 'top',
-                size: 'medium',
-                color: '#ffffff',
-                duration: 3
-            },
-            quality: {
-                preset: 'medium',
-                width: 1280,
-                height: 720,
-                fps: 24,
-                bitrate: 2500000
-            },
-            performance: {
-                performanceMode: false,
-                currentFps: 0,
-                frameDrops: 0,
-                heavyMode: false
-            }
+            videoLoaded: false, videoDuration: 0, videoWidth: 0, videoHeight: 0,
+            videoAspect: 16/9, isPortrait: false,
+            effects: { scanlines: false, noise: false, trackingshake: false, rollingbar: false, chromatic: false, vignette: false, shake: false, colorfade: false, sepia: false, glitch: false, timestamp: false, rec: false },
+            intensity: 70, isRecording: false, durationMode: 'preset', selectedDuration: 90, effectiveDuration: 90,
+            fadeIn: { enabled: false, duration: 1 }, fadeOut: { enabled: true, duration: 2 },
+            exportVolume: 100, exportMuted: false, startPoint: 0, exportStartTime: 0, exportEndTime: 0,
+            title: { enabled: false, text: '', mode: 'intro', style: 'classic', position: 'top', size: 'medium', color: '#ffffff', duration: 3 },
+            quality: { preset: 'medium', width: 1280, height: 720, fps: 24, bitrate: 5000000 },
+            performance: { performanceMode: false, currentFps: 0, heavyMode: false }
         };
 
         const qualityPresets = {
-            low: { width: 848, height: 480, fps: 15, bitrate: 1500000, label: 'Baja (480p · 15fps)' },
-            medium: { width: 1280, height: 720, fps: 24, bitrate: 2500000, label: 'Media (720p · 24fps)' },
-            high: { width: 1920, height: 1080, fps: 30, bitrate: 5000000, label: 'Alta (1080p · 30fps)' }
+            low: { width: 848, height: 480, fps: 15, bitrate: 3000000 },
+            medium: { width: 1280, height: 720, fps: 24, bitrate: 5000000 },
+            high: { width: 1920, height: 1080, fps: 30, bitrate: 8000000 }
         };
-
-        if (isMobile) {
-            state.quality.preset = 'medium';
-            state.quality = { ...state.quality, ...qualityPresets.medium };
-        }
 
         const video = document.getElementById('videoPlayer');
         const uploadArea = document.getElementById('uploadArea');
@@ -1784,142 +509,78 @@
         const perfFps = document.getElementById('perfFps');
         const perfModeBadge = document.getElementById('perfModeBadge');
 
-        function formatTime(seconds) {
-            if (!seconds || isNaN(seconds)) return '0:00';
-            const s = Math.floor(seconds);
-            const mins = Math.floor(s / 60);
-            const secs = s % 60;
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        function formatTime(s) {
+            if (!s || isNaN(s)) return '0:00';
+            const sec = Math.floor(s);
+            return `${Math.floor(sec/60)}:${(sec%60).toString().padStart(2,'0')}`;
+        }
+        function formatDurationLabel(s) {
+            if (s >= 60) { const m = Math.floor(s/60), sec = Math.floor(s%60); return sec > 0 ? `${m}m ${sec}s` : `${m}min`; }
+            return `${Math.floor(s)}s`;
         }
 
-        function formatDurationLabel(seconds) {
-            if (seconds >= 60) {
-                const mins = Math.floor(seconds / 60);
-                const secs = Math.floor(seconds % 60);
-                return secs > 0 ? `${mins}m ${secs}s` : `${mins}min`;
-            }
-            return `${Math.floor(seconds)}s`;
-        }
-
+        // ============ CARGA DE VIDEO ============
         uploadArea.addEventListener('click', () => videoInput.click());
-
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
-
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
-
+        uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
         uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
+            e.preventDefault(); uploadArea.classList.remove('dragover');
             const file = e.dataTransfer.files[0];
-            if (file && file.type.startsWith('video/')) {
-                loadVideo(file);
-            } else {
-                alert('Por favor selecciona un archivo de video válido');
-            }
+            if (file && file.type.startsWith('video/')) loadVideo(file);
+            else alert('Selecciona un archivo de video válido');
         });
-
         videoInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
-            if (file) {
-                if (file.type.startsWith('video/')) {
-                    loadVideo(file);
-                } else {
-                    alert('Por favor selecciona un archivo de video válido');
-                }
-            }
+            if (file && file.type.startsWith('video/')) loadVideo(file);
         });
 
         function loadVideo(file) {
-            if (video.src) {
-                try { URL.revokeObjectURL(video.src); } catch(e) {}
-            }
-            
+            if (video.src) { try { URL.revokeObjectURL(video.src); } catch(e) {} }
             const url = URL.createObjectURL(file);
             video.src = url;
             video.load();
-            
             video.onloadedmetadata = () => {
                 state.videoLoaded = true;
                 state.videoDuration = video.duration;
                 state.videoWidth = video.videoWidth;
                 state.videoHeight = video.videoHeight;
-                state.videoAspect = video.videoWidth / video.videoHeight;
+                state.videoAspect = video.videoWidth / state.videoHeight;
                 state.isPortrait = state.videoAspect < 1;
                 state.startPoint = 0;
-                
-                console.log('Video:', video.videoWidth + 'x' + video.videoHeight, 
-                           'Aspect:', state.videoAspect.toFixed(2),
-                           state.isPortrait ? '(VERTICAL)' : '(HORIZONTAL)');
-                
+                videoSourceCreated = false;
+                console.log('✅ Video cargado:', state.videoWidth + 'x' + state.videoHeight);
                 uploadArea.classList.add('hidden');
-                btnPlayPause.disabled = false;
-                btnStop.disabled = false;
-                btnChangeVideo.disabled = false;
-                btnExport.disabled = false;
-                
+                btnPlayPause.disabled = false; btnStop.disabled = false;
+                btnChangeVideo.disabled = false; btnExport.disabled = false;
                 video.volume = volumeSlider.value / 100;
-                
                 document.getElementById('navigationPanel').style.display = 'block';
-                document.getElementById('startPointInput').value = 0;
                 document.getElementById('startPointInput').max = Math.floor(video.duration);
-                
-                updateExportSummary();
-                updateTimeline();
-            };
-            
-            video.onerror = () => {
-                alert('Error al cargar el video. Intenta con otro archivo.');
-                uploadArea.classList.remove('hidden');
+                updateExportSummary(); updateTimeline();
             };
         }
 
+        // ============ CONTROLES ============
         btnPlayPause.addEventListener('click', () => {
-            if (video.paused) {
-                video.play();
-                btnPlayPause.innerHTML = '<i class="bi bi-pause-fill"></i> PAUSAR';
-            } else {
-                video.pause();
-                btnPlayPause.innerHTML = '<i class="bi bi-play-fill"></i> REPRODUCIR';
-            }
+            if (video.paused) { video.play(); btnPlayPause.innerHTML = '<i class="bi bi-pause-fill"></i> PAUSAR'; }
+            else { video.pause(); btnPlayPause.innerHTML = '<i class="bi bi-play-fill"></i> REPRODUCIR'; }
         });
-
-        btnStop.addEventListener('click', () => {
-            video.pause();
-            video.currentTime = state.startPoint;
-            btnPlayPause.innerHTML = '<i class="bi bi-play-fill"></i> REPRODUCIR';
-        });
-
+        btnStop.addEventListener('click', () => { video.pause(); video.currentTime = state.startPoint; btnPlayPause.innerHTML = '<i class="bi bi-play-fill"></i> REPRODUCIR'; });
         btnChangeVideo.addEventListener('click', () => {
             video.pause();
-            if (video.src) {
-                try { URL.revokeObjectURL(video.src); } catch(e) {}
-            }
-            video.removeAttribute('src');
-            video.load();
-            videoInput.value = '';
+            if (video.src) try { URL.revokeObjectURL(video.src); } catch(e) {}
+            video.removeAttribute('src'); video.load(); videoInput.value = '';
             uploadArea.classList.remove('hidden');
-            btnPlayPause.disabled = true;
-            btnStop.disabled = true;
-            btnChangeVideo.disabled = true;
-            btnExport.disabled = true;
+            btnPlayPause.disabled = true; btnStop.disabled = true;
+            btnChangeVideo.disabled = true; btnExport.disabled = true;
             btnPlayPause.innerHTML = '<i class="bi bi-play-fill"></i> REPRODUCIR';
-            state.videoLoaded = false;
-            state.videoDuration = 0;
-            state.startPoint = 0;
+            state.videoLoaded = false; state.videoDuration = 0; state.startPoint = 0;
+            videoSourceCreated = false;
             document.getElementById('navigationPanel').style.display = 'none';
             updateExportSummary();
         });
+        volumeSlider.addEventListener('input', (e) => { video.volume = e.target.value / 100; document.getElementById('volumeValue').textContent = e.target.value; });
 
-        volumeSlider.addEventListener('input', (e) => {
-            video.volume = e.target.value / 100;
-            document.getElementById('volumeValue').textContent = e.target.value;
-        });
-
+        // ============ EFECTOS ============
         document.querySelectorAll('.effect-toggle').forEach(btn => {
             btn.addEventListener('click', () => {
                 const effect = btn.dataset.effect;
@@ -1931,927 +592,611 @@
 
         function applyEffects() {
             const intensity = state.intensity / 100;
-
-            const scanlines = document.getElementById('scanlinesOverlay');
-            scanlines.classList.toggle('active', state.effects.scanlines);
-            scanlines.style.opacity = state.effects.scanlines ? intensity : 0;
-
-            const noise = document.getElementById('noiseOverlay');
-            noise.classList.toggle('active', state.effects.noise);
-            noise.style.opacity = state.effects.noise ? intensity * 0.5 : 0;
-
+            document.getElementById('scanlinesOverlay').classList.toggle('active', state.effects.scanlines);
+            document.getElementById('scanlinesOverlay').style.opacity = state.effects.scanlines ? intensity : 0;
+            document.getElementById('noiseOverlay').classList.toggle('active', state.effects.noise);
+            document.getElementById('noiseOverlay').style.opacity = state.effects.noise ? intensity * 0.5 : 0;
             document.getElementById('trackingShakeOverlay').classList.toggle('active', state.effects.trackingshake);
             document.getElementById('rollingBarOverlay').classList.toggle('active', state.effects.rollingbar);
             document.getElementById('vignetteOverlay').classList.toggle('active', state.effects.vignette);
             timestampOverlay.classList.toggle('active', state.effects.timestamp);
             document.getElementById('recIndicator').classList.toggle('active', state.effects.rec);
-
             let filters = [];
-            if (state.effects.chromatic) {
-                const offset = Math.round(intensity * 4);
-                filters.push(`drop-shadow(-${offset}px 0 0 rgba(255, 0, 0, 0.7))`);
-                filters.push(`drop-shadow(${offset}px 0 0 rgba(0, 255, 255, 0.7))`);
-            }
-            if (state.effects.colorfade) {
-                filters.push('saturate(0.5) sepia(0.3) contrast(1.1) brightness(0.95)');
-            }
-            if (state.effects.sepia) {
-                filters.push('sepia(0.85) saturate(0.6) contrast(1.15) brightness(0.9) hue-rotate(-10deg)');
-            }
-            
+            if (state.effects.chromatic) { const o = Math.round(intensity * 4); filters.push(`drop-shadow(-${o}px 0 0 rgba(255,0,0,0.7)) drop-shadow(${o}px 0 0 rgba(0,255,255,0.7))`); }
+            if (state.effects.colorfade) filters.push('saturate(0.5) sepia(0.3) contrast(1.1) brightness(0.95)');
+            if (state.effects.sepia) filters.push('sepia(0.85) saturate(0.6) contrast(1.15) brightness(0.9) hue-rotate(-10deg)');
             video.style.filter = filters.length > 0 ? filters.join(' ') : '';
-
             video.classList.toggle('shake-effect', state.effects.shake);
             video.classList.toggle('glitch-effect', state.effects.glitch);
         }
-
-        intensitySlider.addEventListener('input', (e) => {
-            state.intensity = parseInt(e.target.value);
-            applyEffects();
-        });
+        intensitySlider.addEventListener('input', (e) => { state.intensity = parseInt(e.target.value); applyEffects(); });
 
         const presets = {
-            light: ['scanlines', 'vignette'],
-            classic: ['scanlines', 'noise', 'vignette', 'timestamp', 'chromatic'],
+            light: ['scanlines', 'vignette'], classic: ['scanlines', 'noise', 'vignette', 'timestamp', 'chromatic'],
             heavy: ['scanlines', 'noise', 'trackingshake', 'rollingbar', 'vignette', 'timestamp', 'rec', 'chromatic', 'shake'],
             horror: ['scanlines', 'noise', 'trackingshake', 'rollingbar', 'vignette', 'glitch', 'colorfade', 'shake'],
-            ancient: ['sepia', 'scanlines', 'noise', 'vignette', 'colorfade', 'timestamp'],
-            'subtitle-killer': ['rollingbar', 'trackingshake', 'noise', 'scanlines'],
-            'bad-tracking': ['trackingshake', 'noise', 'scanlines', 'chromatic'],
-            none: []
+            ancient: ['sepia', 'scanlines', 'noise', 'vignette', 'colorfade', 'timestamp'], none: []
         };
-
         document.querySelectorAll('.preset-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const preset = btn.dataset.preset;
-                Object.keys(state.effects).forEach(key => { state.effects[key] = false; });
+                Object.keys(state.effects).forEach(k => state.effects[k] = false);
                 document.querySelectorAll('.effect-toggle').forEach(t => t.classList.remove('active'));
-                
-                presets[preset].forEach(effect => {
-                    state.effects[effect] = true;
-                    document.querySelector(`[data-effect="${effect}"]`).classList.add('active');
-                });
-                
+                presets[preset].forEach(e => { state.effects[e] = true; document.querySelector(`[data-effect="${e}"]`).classList.add('active'); });
                 applyEffects();
             });
         });
 
+        // ============ TIMELINE ============
         function updateTimeline() {
             if (!state.videoLoaded) return;
-
-            const currentTime = video.currentTime;
-            const duration = state.videoDuration;
-            const progressPercent = (currentTime / duration) * 100;
-
-            document.getElementById('timelineCursor').style.left = progressPercent + '%';
-            document.getElementById('timelineProgress').style.width = progressPercent + '%';
-
-            document.getElementById('timeCurrent').textContent = formatTime(currentTime);
-            document.getElementById('timeTotal').textContent = '/ ' + formatTime(duration);
-
+            const p = (video.currentTime / state.videoDuration) * 100;
+            document.getElementById('timelineCursor').style.left = p + '%';
+            document.getElementById('timelineProgress').style.width = p + '%';
+            document.getElementById('timeCurrent').textContent = formatTime(video.currentTime);
+            document.getElementById('timeTotal').textContent = '/ ' + formatTime(state.videoDuration);
             updateTitlePreview();
         }
-
         function updateTimelineRange() {
             if (!state.videoLoaded) return;
-
-            const duration = state.videoDuration;
-            const startPercent = (state.exportStartTime / duration) * 100;
-            const endPercent = (state.exportEndTime / duration) * 100;
-
-            const range = document.getElementById('timelineRange');
-            range.style.left = startPercent + '%';
-            range.style.width = (endPercent - startPercent) + '%';
-
-            document.getElementById('timelineStartMarker').style.left = startPercent + '%';
+            const s = (state.exportStartTime / state.videoDuration) * 100;
+            const e = (state.exportEndTime / state.videoDuration) * 100;
+            document.getElementById('timelineRange').style.left = s + '%';
+            document.getElementById('timelineRange').style.width = (e - s) + '%';
+            document.getElementById('timelineStartMarker').style.left = s + '%';
         }
-
         document.getElementById('timelineContainer').addEventListener('click', (e) => {
             if (!state.videoLoaded) return;
-            
-            const rect = e.currentTarget.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const percent = x / rect.width;
-            const newTime = percent * state.videoDuration;
-            
-            video.currentTime = Math.max(0, Math.min(newTime, state.videoDuration));
+            const r = e.currentTarget.getBoundingClientRect();
+            video.currentTime = Math.max(0, Math.min(((e.clientX - r.left) / r.width) * state.videoDuration, state.videoDuration));
         });
-
         let isDraggingStart = false;
-        const startMarker = document.getElementById('timelineStartMarker');
-
-        startMarker.addEventListener('mousedown', (e) => {
-            isDraggingStart = true;
-            e.preventDefault();
-        });
-
+        document.getElementById('timelineStartMarker').addEventListener('mousedown', (e) => { isDraggingStart = true; e.preventDefault(); });
         document.addEventListener('mousemove', (e) => {
             if (!isDraggingStart || !state.videoLoaded) return;
-
-            const timeline = document.getElementById('timelineContainer');
-            const rect = timeline.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const percent = Math.max(0, Math.min(x / rect.width, 1));
-            const newStart = percent * state.videoDuration;
-
-            state.startPoint = newStart;
-            document.getElementById('startPointInput').value = Math.floor(newStart);
-            updateTimelineRange();
-            updateExportSummary();
+            const r = document.getElementById('timelineContainer').getBoundingClientRect();
+            state.startPoint = Math.max(0, Math.min(((e.clientX - r.left) / r.width) * state.videoDuration, state.videoDuration));
+            document.getElementById('startPointInput').value = Math.floor(state.startPoint);
+            updateTimelineRange(); updateExportSummary();
         });
-
-        document.addEventListener('mouseup', () => {
-            isDraggingStart = false;
-        });
-
+        document.addEventListener('mouseup', () => isDraggingStart = false);
         document.querySelectorAll('.nav-btn[data-skip]').forEach(btn => {
             btn.addEventListener('click', () => {
                 if (!state.videoLoaded) return;
-                
-                const skip = parseInt(btn.dataset.skip);
-                const newTime = Math.max(0, Math.min(video.currentTime + skip, state.videoDuration));
-                video.currentTime = newTime;
+                video.currentTime = Math.max(0, Math.min(video.currentTime + parseInt(btn.dataset.skip), state.videoDuration));
             });
         });
-
         document.getElementById('btnMarkStart').addEventListener('click', () => {
             if (!state.videoLoaded) return;
-            
             state.startPoint = video.currentTime;
-            document.getElementById('startPointInput').value = Math.floor(video.currentTime);
-            updateTimelineRange();
-            updateExportSummary();
+            document.getElementById('startPointInput').value = Math.floor(state.startPoint);
+            updateTimelineRange(); updateExportSummary();
         });
-
         document.getElementById('startPointInput').addEventListener('change', (e) => {
             if (!state.videoLoaded) return;
-            
-            const value = parseInt(e.target.value) || 0;
-            state.startPoint = Math.max(0, Math.min(value, state.videoDuration));
+            state.startPoint = Math.max(0, Math.min(parseInt(e.target.value) || 0, state.videoDuration));
             e.target.value = Math.floor(state.startPoint);
-            updateTimelineRange();
-            updateExportSummary();
+            updateTimelineRange(); updateExportSummary();
         });
-
         document.getElementById('btnSetStart').addEventListener('click', () => {
             if (!state.videoLoaded) return;
-            
-            const value = parseInt(document.getElementById('startPointInput').value) || 0;
-            state.startPoint = Math.max(0, Math.min(value, state.videoDuration));
+            state.startPoint = Math.max(0, Math.min(parseInt(document.getElementById('startPointInput').value) || 0, state.videoDuration));
             document.getElementById('startPointInput').value = Math.floor(state.startPoint);
             video.currentTime = state.startPoint;
-            updateTimelineRange();
-            updateExportSummary();
+            updateTimelineRange(); updateExportSummary();
         });
-
         video.addEventListener('timeupdate', updateTimeline);
+        video.addEventListener('play', () => { document.getElementById('playIndicator').classList.add('active'); document.getElementById('playIndicator').textContent = '▶ PLAY'; });
+        video.addEventListener('pause', () => { document.getElementById('playIndicator').textContent = '❚❚ PAUSE'; });
 
-        video.addEventListener('play', () => {
-            document.getElementById('playIndicator').classList.add('active');
-            document.getElementById('playIndicator').textContent = '▶ PLAY';
-        });
-
-        video.addEventListener('pause', () => {
-            document.getElementById('playIndicator').textContent = '❚❚ PAUSE';
-        });
-
+        // ============ RESUMEN ============
         function updateExportSummary() {
-            const summaryMode = document.getElementById('summaryMode');
-            const summaryDuration = document.getElementById('summaryDuration');
-            const videoOriginalDuration = document.getElementById('videoOriginalDuration');
-            const videoExportDuration = document.getElementById('videoExportDuration');
-            const videoInfoBar = document.getElementById('videoInfoBar');
-            const durationWarning = document.getElementById('durationWarning');
-
-            if (state.durationMode === 'full') {
-                state.effectiveDuration = Math.max(0, state.videoDuration - state.startPoint);
-                summaryMode.textContent = 'Completo';
-            } else {
+            const m = document.getElementById('summaryMode');
+            const d = document.getElementById('summaryDuration');
+            const f = document.getElementById('summaryFormat');
+            const w = document.getElementById('durationWarning');
+            if (state.durationMode === 'full') { state.effectiveDuration = Math.max(0, state.videoDuration - state.startPoint); m.textContent = 'Completo'; }
+            else {
                 state.effectiveDuration = state.selectedDuration;
-                
-                if (state.durationMode === 'custom') {
-                    summaryMode.textContent = `Personalizado (${state.selectedDuration}s)`;
-                } else if (state.selectedDuration === 90) {
-                    summaryMode.textContent = 'WhatsApp (90s)';
-                } else {
-                    summaryMode.textContent = `Preset (${state.selectedDuration}s)`;
-                }
+                m.textContent = state.durationMode === 'custom' ? `Personalizado (${state.selectedDuration}s)` : (state.selectedDuration === 90 ? 'WhatsApp (90s)' : `Preset (${state.selectedDuration}s)`);
             }
-
             state.exportStartTime = state.startPoint;
             state.exportEndTime = Math.min(state.startPoint + state.effectiveDuration, state.videoDuration);
-
             if (state.videoDuration > 0 && state.startPoint + state.effectiveDuration > state.videoDuration) {
                 state.effectiveDuration = Math.max(0, state.videoDuration - state.startPoint);
                 state.exportEndTime = state.videoDuration;
-                durationWarning.classList.add('show');
-            } else {
-                durationWarning.classList.remove('show');
-            }
-
+                w.classList.add('show');
+            } else w.classList.remove('show');
             if (state.videoDuration > 0) {
-                videoInfoBar.style.display = 'flex';
-                videoOriginalDuration.textContent = formatTime(state.videoDuration);
-                videoExportDuration.textContent = formatTime(state.effectiveDuration);
-                summaryDuration.textContent = formatDurationLabel(state.effectiveDuration);
+                document.getElementById('videoInfoBar').style.display = 'flex';
+                document.getElementById('videoOriginalDuration').textContent = formatTime(state.videoDuration);
+                document.getElementById('videoExportDuration').textContent = formatTime(state.effectiveDuration);
+                d.textContent = formatDurationLabel(state.effectiveDuration);
             } else {
-                videoInfoBar.style.display = 'none';
-                summaryDuration.textContent = '--';
+                document.getElementById('videoInfoBar').style.display = 'none';
+                d.textContent = '--';
             }
-
-            updateRangeInfo();
-            updateTimelineRange();
-            updateFadeSummary();
-            updateTitleSummary();
-        }
-
-        function updateRangeInfo() {
+            const mimes = ['video/mp4;codecs=h264', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
+            let fmt = 'WebM';
+            for (let t of mimes) if (MediaRecorder.isTypeSupported(t)) { fmt = t.includes('mp4') ? 'MP4' : 'WebM'; break; }
+            f.textContent = fmt;
             document.getElementById('rangeStart').textContent = formatTime(state.exportStartTime);
             document.getElementById('rangeEnd').textContent = formatTime(state.exportEndTime);
             document.getElementById('rangeDuration').textContent = formatDurationLabel(state.effectiveDuration);
+            updateTimelineRange();
         }
-
-        function updateFadeSummary() {
-            const summaryFadeIn = document.getElementById('summaryFadeIn');
-            const summaryFadeOut = document.getElementById('summaryFadeOut');
-            
-            summaryFadeIn.textContent = state.fadeIn.enabled ? `${state.fadeIn.duration}s` : 'Desactivado';
-            summaryFadeIn.style.color = state.fadeIn.enabled ? 'var(--vhs-purple)' : '#666';
-                
-            summaryFadeOut.textContent = state.fadeOut.enabled ? `${state.fadeOut.duration}s` : 'Desactivado';
-            summaryFadeOut.style.color = state.fadeOut.enabled ? 'var(--vhs-purple)' : '#666';
-        }
-
         document.querySelectorAll('.duration-preset-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.duration-preset-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                
-                const durationValue = btn.dataset.duration;
-                
-                if (durationValue === 'full') {
-                    state.durationMode = 'full';
-                    state.selectedDuration = Math.max(0, state.videoDuration - state.startPoint);
-                    document.getElementById('customDuration').value = '';
-                } else {
-                    state.durationMode = 'preset';
-                    state.selectedDuration = parseInt(durationValue);
-                    document.getElementById('customDuration').value = '';
-                }
-                
+                const v = btn.dataset.duration;
+                if (v === 'full') { state.durationMode = 'full'; state.selectedDuration = Math.max(0, state.videoDuration - state.startPoint); document.getElementById('customDuration').value = ''; }
+                else { state.durationMode = 'preset'; state.selectedDuration = parseInt(v); document.getElementById('customDuration').value = ''; }
                 updateExportSummary();
             });
         });
-
         document.getElementById('customDuration').addEventListener('input', (e) => {
-            const value = parseInt(e.target.value);
-            if (value && value > 0) {
-                document.querySelectorAll('.duration-preset-btn').forEach(b => b.classList.remove('active'));
-                state.durationMode = 'custom';
-                state.selectedDuration = Math.min(value, 3600);
-                updateExportSummary();
-            }
+            const v = parseInt(e.target.value);
+            if (v > 0) { document.querySelectorAll('.duration-preset-btn').forEach(b => b.classList.remove('active')); state.durationMode = 'custom'; state.selectedDuration = Math.min(v, 3600); updateExportSummary(); }
         });
-
-        document.getElementById('fadeInToggle').addEventListener('click', () => {
-            state.fadeIn.enabled = !state.fadeIn.enabled;
-            document.getElementById('fadeInToggle').classList.toggle('active', state.fadeIn.enabled);
-            document.getElementById('fadeInOptions').classList.toggle('show', state.fadeIn.enabled);
-            updateFadeSummary();
-        });
-
-        document.getElementById('fadeOutToggle').addEventListener('click', () => {
-            state.fadeOut.enabled = !state.fadeOut.enabled;
-            document.getElementById('fadeOutToggle').classList.toggle('active', state.fadeOut.enabled);
-            document.getElementById('fadeOutOptions').classList.toggle('show', state.fadeOut.enabled);
-            updateFadeSummary();
-        });
-
+        document.getElementById('fadeInToggle').addEventListener('click', () => { state.fadeIn.enabled = !state.fadeIn.enabled; document.getElementById('fadeInToggle').classList.toggle('active', state.fadeIn.enabled); document.getElementById('fadeInOptions').classList.toggle('show', state.fadeIn.enabled); updateExportSummary(); });
+        document.getElementById('fadeOutToggle').addEventListener('click', () => { state.fadeOut.enabled = !state.fadeOut.enabled; document.getElementById('fadeOutToggle').classList.toggle('active', state.fadeOut.enabled); document.getElementById('fadeOutOptions').classList.toggle('show', state.fadeOut.enabled); updateExportSummary(); });
         document.querySelectorAll('.fade-duration-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                const fadeType = btn.dataset.fade;
-                const duration = parseFloat(btn.dataset.duration);
-                
-                document.querySelectorAll(`.fade-duration-btn[data-fade="${fadeType}"]`)
-                    .forEach(b => b.classList.remove('active'));
+                document.querySelectorAll(`.fade-duration-btn[data-fade="${btn.dataset.fade}"]`).forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                
-                if (fadeType === 'in') {
-                    state.fadeIn.duration = duration;
-                } else {
-                    state.fadeOut.duration = duration;
-                }
-                
-                updateFadeSummary();
+                if (btn.dataset.fade === 'in') state.fadeIn.duration = parseFloat(btn.dataset.duration);
+                else state.fadeOut.duration = parseFloat(btn.dataset.duration);
+                updateExportSummary();
             });
         });
-
         const exportVolumeSlider = document.getElementById('exportVolumeSlider');
         const exportVolumeValue = document.getElementById('exportVolumeValue');
         const exportMuteBtn = document.getElementById('exportMuteBtn');
-
-        exportVolumeSlider.addEventListener('input', (e) => {
-            state.exportVolume = parseInt(e.target.value);
-            exportVolumeValue.textContent = state.exportVolume + '%';
-            
-            if (state.exportMuted && state.exportVolume > 0) {
-                state.exportMuted = false;
-                exportMuteBtn.classList.remove('muted');
-            }
-        });
-
-        exportMuteBtn.addEventListener('click', () => {
-            state.exportMuted = !state.exportMuted;
-            exportMuteBtn.classList.toggle('muted', state.exportMuted);
-            
-            if (state.exportMuted) {
-                exportVolumeSlider.value = 0;
-                state.exportVolume = 0;
-                exportVolumeValue.textContent = '0%';
-            } else {
-                exportVolumeSlider.value = 100;
-                state.exportVolume = 100;
-                exportVolumeValue.textContent = '100%';
-            }
-        });
-
+        exportVolumeSlider.addEventListener('input', (e) => { state.exportVolume = parseInt(e.target.value); exportVolumeValue.textContent = state.exportVolume + '%'; if (state.exportMuted && state.exportVolume > 0) { state.exportMuted = false; exportMuteBtn.classList.remove('muted'); } });
+        exportMuteBtn.addEventListener('click', () => { state.exportMuted = !state.exportMuted; exportMuteBtn.classList.toggle('muted', state.exportMuted); if (state.exportMuted) { exportVolumeSlider.value = 0; state.exportVolume = 0; exportVolumeValue.textContent = '0%'; } else { exportVolumeSlider.value = 100; state.exportVolume = 100; exportVolumeValue.textContent = '100%'; } });
         document.querySelectorAll('.quality-preset-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.quality-preset-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                
-                const qualityKey = btn.dataset.quality;
-                const preset = qualityPresets[qualityKey];
-                
-                state.quality.preset = qualityKey;
-                state.quality.width = preset.width;
-                state.quality.height = preset.height;
-                state.quality.fps = preset.fps;
-                state.quality.bitrate = preset.bitrate;
-                
-                console.log('Calidad:', preset.label);
+                const p = qualityPresets[btn.dataset.quality];
+                state.quality.preset = btn.dataset.quality;
+                state.quality.width = p.width; state.quality.height = p.height;
+                state.quality.fps = p.fps; state.quality.bitrate = p.bitrate;
             });
         });
 
-        function updateTitleSummary() {
-            const summaryTitle = document.getElementById('summaryTitle');
-            const summaryTitleMode = document.getElementById('summaryTitleMode');
-            
-            if (state.title.enabled && state.title.text.trim()) {
-                const shortText = state.title.text.substring(0, 20) + (state.title.text.length > 20 ? '...' : '');
-                summaryTitle.textContent = shortText;
-                summaryTitle.style.color = 'var(--vhs-orange)';
-                
-                if (state.title.mode === 'intro') {
-                    summaryTitleMode.textContent = `Intro (${state.title.duration}s)`;
-                } else {
-                    summaryTitleMode.textContent = 'Fijo';
-                }
-                summaryTitleMode.style.color = 'var(--vhs-orange)';
-            } else {
-                summaryTitle.textContent = 'Desactivado';
-                summaryTitle.style.color = '#666';
-                summaryTitleMode.textContent = '-';
-                summaryTitleMode.style.color = '#666';
-            }
-        }
-
+        // ============ TÍTULOS ============
         function updateTitlePreview() {
-            const titleOverlay = document.getElementById('titleOverlay');
-            const titleText = document.getElementById('titleText');
-            
-            if (!state.title.enabled || !state.title.text.trim()) {
-                titleOverlay.classList.remove('active');
-                return;
-            }
-
-            const relativeTime = video.currentTime - state.startPoint;
-
-            if (state.title.mode === 'intro') {
-                if (relativeTime >= 0 && relativeTime < state.title.duration) {
-                    titleOverlay.classList.add('active');
-                } else {
-                    titleOverlay.classList.remove('active');
-                }
-            } else {
-                titleOverlay.classList.add('active');
-            }
-
-            titleText.className = 'title-text title-style-' + state.title.style;
-            titleText.style.color = state.title.color;
-            
-            const sizeMap = {
-                'small': '1.5rem',
-                'medium': '2.5rem',
-                'large': '3.5rem',
-                'xlarge': '5rem'
-            };
-            titleText.style.fontSize = sizeMap[state.title.size];
-
-            titleOverlay.className = 'title-overlay active position-' + state.title.position;
-            titleText.textContent = state.title.text;
+            const o = document.getElementById('titleOverlay');
+            const t = document.getElementById('titleText');
+            if (!state.title.enabled || !state.title.text.trim()) { o.classList.remove('active'); return; }
+            const rt = video.currentTime - state.startPoint;
+            if (state.title.mode === 'intro') { if (rt >= 0 && rt < state.title.duration) o.classList.add('active'); else o.classList.remove('active'); }
+            else o.classList.add('active');
+            t.className = 'title-text title-style-' + state.title.style;
+            t.style.color = state.title.color;
+            const sz = { 'small': '1.5rem', 'medium': '2.5rem', 'large': '3.5rem', 'xlarge': '5rem' };
+            t.style.fontSize = sz[state.title.size];
+            o.className = 'title-overlay active position-' + state.title.position;
+            t.textContent = state.title.text;
         }
-
-        document.getElementById('titleInput').addEventListener('input', (e) => {
-            state.title.text = e.target.value;
-            state.title.enabled = e.target.value.trim().length > 0;
-            updateTitlePreview();
-            updateTitleSummary();
-        });
-
+        document.getElementById('titleInput').addEventListener('input', (e) => { state.title.text = e.target.value; state.title.enabled = e.target.value.trim().length > 0; updateTitlePreview(); });
         document.querySelectorAll('.title-mode-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.title-mode-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                
                 state.title.mode = btn.dataset.mode;
-                
-                document.getElementById('titleDurationGroup').style.display = 
-                    state.title.mode === 'intro' ? 'block' : 'none';
-                
-                updateTitlePreview();
-                updateTitleSummary();
-            });
-        });
-
-        document.getElementById('titleStyle').addEventListener('change', (e) => {
-            state.title.style = e.target.value;
-            updateTitlePreview();
-        });
-
-        document.getElementById('titlePosition').addEventListener('change', (e) => {
-            state.title.position = e.target.value;
-            updateTitlePreview();
-        });
-
-        document.getElementById('titleSize').addEventListener('change', (e) => {
-            state.title.size = e.target.value;
-            updateTitlePreview();
-        });
-
-        document.querySelectorAll('.color-option').forEach(option => {
-            option.addEventListener('click', () => {
-                document.querySelectorAll('.color-option').forEach(o => o.classList.remove('active'));
-                option.classList.add('active');
-                state.title.color = option.dataset.color;
+                document.getElementById('titleDurationGroup').style.display = state.title.mode === 'intro' ? 'block' : 'none';
                 updateTitlePreview();
             });
         });
-
-        document.getElementById('titleDuration').addEventListener('change', (e) => {
-            state.title.duration = parseInt(e.target.value) || 3;
-            updateTitlePreview();
-            updateTitleSummary();
+        document.getElementById('titleStyle').addEventListener('change', updateTitlePreview);
+        document.getElementById('titlePosition').addEventListener('change', updateTitlePreview);
+        document.getElementById('titleSize').addEventListener('change', updateTitlePreview);
+        document.querySelectorAll('.color-option').forEach(o => {
+            o.addEventListener('click', () => {
+                document.querySelectorAll('.color-option').forEach(x => x.classList.remove('active'));
+                o.classList.add('active'); state.title.color = o.dataset.color; updateTitlePreview();
+            });
         });
-
-        function updateTimestamp() {
+        document.getElementById('titleDuration').addEventListener('change', (e) => { state.title.duration = parseInt(e.target.value) || 3; updateTitlePreview(); });
+        setInterval(() => {
             if (state.effects.timestamp) {
-                const time = video.currentTime || 0;
-                const hrs = Math.floor(time / 3600).toString().padStart(2, '0');
-                const mins = Math.floor((time % 3600) / 60).toString().padStart(2, '0');
-                const secs = Math.floor(time % 60).toString().padStart(2, '0');
-                const playState = video.paused ? 'PAUSE' : 'PLAY';
-                timestampOverlay.textContent = `${playState}  ${hrs}:${mins}:${secs}`;
+                const t = video.currentTime || 0;
+                const h = Math.floor(t/3600).toString().padStart(2,'0');
+                const m = Math.floor((t%3600)/60).toString().padStart(2,'0');
+                const s = Math.floor(t%60).toString().padStart(2,'0');
+                timestampOverlay.textContent = `${video.paused?'PAUSE':'PLAY'}  ${h}:${m}:${s}`;
+            }
+        }, 500);
+
+        // ================================================================
+        // ⭐ FUNCIÓN DE RENDERIZADO
+        // ================================================================
+        function drawExportFrame(timestamp) {
+            if (!exportIsPlaying || !state.isRecording) return;
+            exportAnimationId = requestAnimationFrame(drawExportFrame);
+            
+            if (!exportCanvas || !exportCtx) return;
+            
+            if (lastFrameTimestamp > 0) {
+                const d = timestamp - lastFrameTimestamp;
+                fpsHistory.push(1000 / d);
+                if (fpsHistory.length > 30) fpsHistory.shift();
+                fpsUpdateCounter++;
+                if (fpsUpdateCounter >= 10) {
+                    fpsUpdateCounter = 0;
+                    const avg = fpsHistory.reduce((a,b) => a+b, 0) / fpsHistory.length;
+                    state.performance.currentFps = avg;
+                    perfFps.textContent = Math.round(avg);
+                }
+            }
+            lastFrameTimestamp = timestamp;
+            framesRendered++;
+            
+            const canvas = exportCanvas;
+            const ctx = exportCtx;
+            const videoTime = video.currentTime - state.exportStartTime;
+            const intensity = state.intensity / 100;
+            const usePerf = state.performance.performanceMode || state.performance.heavyMode;
+
+            // Audio fade
+            if (gainNode) {
+                let g = state.exportMuted ? 0 : (state.exportVolume / 100);
+                if (state.fadeIn.enabled && videoTime < state.fadeIn.duration) g *= (videoTime / state.fadeIn.duration);
+                if (state.fadeOut.enabled) {
+                    const fs = state.effectiveDuration - state.fadeOut.duration;
+                    if (videoTime >= fs) g *= (1 - (videoTime - fs) / state.fadeOut.duration);
+                }
+                gainNode.gain.value = Math.max(0, g);
+            }
+
+            // Limpiar canvas
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar video con filtros
+            let filters = [];
+            if (state.effects.sepia) filters.push(`sepia(${0.85 * intensity}) saturate(${1 - 0.4 * intensity}) contrast(${1 + 0.15 * intensity})`);
+            if (state.effects.colorfade) filters.push(`saturate(${1 - 0.5 * intensity}) sepia(${0.3 * intensity}) contrast(${1 + 0.1 * intensity})`);
+            
+            try {
+                ctx.filter = filters.length > 0 ? filters.join(' ') : 'none';
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                ctx.filter = 'none';
+            } catch (e) {
+                console.error('Error dibujando video:', e);
+            }
+
+            // Efectos overlay
+            if (state.effects.scanlines) {
+                const step = usePerf ? 6 : 4, h = usePerf ? 1 : 2;
+                ctx.fillStyle = `rgba(0,0,0,${0.2 * intensity})`;
+                for (let y = 0; y < canvas.height; y += step) ctx.fillRect(0, y, canvas.width, h);
+            }
+            if (state.effects.noise) {
+                if (!noiseImageData || noiseImageData.width !== canvas.width) noiseImageData = ctx.createImageData(canvas.width, canvas.height);
+                if (!usePerf || fpsUpdateCounter % 4 === 0) {
+                    const d = noiseImageData.data, n = intensity * 40, s = usePerf ? 200 : 60;
+                    for (let i = 0; i < d.length; i += s * 4) {
+                        const v = (Math.random() - 0.5) * n;
+                        d[i] = d[i+1] = d[i+2] = 128 + v; d[i+3] = 60;
+                    }
+                }
+                ctx.putImageData(noiseImageData, 0, 0);
+            }
+            if (state.effects.vignette) {
+                const g = ctx.createRadialGradient(canvas.width/2, canvas.height/2, canvas.width*0.3, canvas.width/2, canvas.height/2, canvas.width*0.7);
+                g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, `rgba(0,0,0,${0.8 * intensity})`);
+                ctx.fillStyle = g; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            if (state.effects.trackingshake) {
+                const bh = 60, sy = (Math.random() - 0.5) * 5 * intensity;
+                const g = ctx.createLinearGradient(0, canvas.height - bh + sy, 0, canvas.height + sy);
+                g.addColorStop(0, `rgba(255,255,255,${0.9*intensity})`); g.addColorStop(0.5, `rgba(0,0,0,${0.9*intensity})`);
+                g.addColorStop(1, `rgba(255,255,255,${0.85*intensity})`);
+                ctx.save(); ctx.translate(0, sy); ctx.fillStyle = g;
+                ctx.fillRect(0, canvas.height - bh, canvas.width, bh); ctx.restore();
+            }
+            if (state.effects.rollingbar) {
+                const bh = 80, y = ((Date.now() % 8000) / 8000) * (canvas.height + bh) - bh;
+                const g = ctx.createLinearGradient(0, y, 0, y + bh);
+                g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, `rgba(0,0,0,${0.6*intensity})`);
+                g.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.fillStyle = g; ctx.fillRect(0, y, canvas.width, bh);
+            }
+            if (state.effects.chromatic) {
+                const o = usePerf ? 2 : Math.round(intensity * 3);
+                ctx.globalCompositeOperation = 'screen';
+                ctx.fillStyle = `rgba(255,0,0,${(usePerf?0.1:0.15)*intensity})`;
+                ctx.fillRect(-o, 0, canvas.width, canvas.height);
+                ctx.fillStyle = `rgba(0,255,255,${(usePerf?0.1:0.15)*intensity})`;
+                ctx.fillRect(o, 0, canvas.width, canvas.height);
+                ctx.globalCompositeOperation = 'source-over';
+            }
+            if (state.effects.timestamp) {
+                const t = video.currentTime;
+                const h = Math.floor(t/3600).toString().padStart(2,'0');
+                const m = Math.floor((t%3600)/60).toString().padStart(2,'0');
+                const s = Math.floor(t%60).toString().padStart(2,'0');
+                ctx.font = `bold ${Math.round(canvas.width*0.03)}px Courier New`;
+                ctx.fillStyle = '#fff'; ctx.strokeStyle = '#000'; ctx.lineWidth = 3;
+                const txt = `PLAY  ${h}:${m}:${s}`;
+                const tw = ctx.measureText(txt).width;
+                ctx.strokeText(txt, canvas.width - tw - 30, canvas.height - 30);
+                ctx.fillText(txt, canvas.width - tw - 30, canvas.height - 30);
+            }
+            if (state.effects.rec) {
+                ctx.font = `bold ${Math.round(canvas.width*0.025)}px Courier New`;
+                ctx.fillStyle = Math.floor(Date.now()/500)%2 ? '#ff0000' : '#aa0000';
+                ctx.strokeStyle = '#000'; ctx.lineWidth = 3;
+                ctx.strokeText('● REC', 30, 50); ctx.fillText('● REC', 30, 50);
+            }
+
+            // Títulos
+            if (state.title.enabled && state.title.text.trim()) {
+                let show = state.title.mode === 'fixed' || (videoTime >= 0 && videoTime < state.title.duration);
+                if (show) {
+                    const sz = { 'small': canvas.width*0.03, 'medium': canvas.width*0.05, 'large': canvas.width*0.07, 'xlarge': canvas.width*0.1 };
+                    const fs = sz[state.title.size];
+                    let ff = 'Courier New', fst = 'bold', tt = 'none';
+                    switch(state.title.style) {
+                        case 'classic': ff = 'Courier New'; fst = 'bold'; tt = 'uppercase'; break;
+                        case 'neon': ff = 'Arial Black'; fst = '900'; tt = 'uppercase'; break;
+                        case 'retro': ff = 'Impact'; fst = 'bold'; tt = 'uppercase'; break;
+                        case 'vintage': ff = 'Georgia'; fst = 'bold italic'; break;
+                        case 'modern': ff = 'Arial'; fst = '300'; break;
+                        case 'glitch': ff = 'Courier New'; fst = 'bold'; tt = 'uppercase'; break;
+                    }
+                    let txt = state.title.text;
+                    if (tt === 'uppercase') txt = txt.toUpperCase();
+                    ctx.font = `${fst} ${fs}px ${ff}`;
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    let ty = canvas.height * 0.15;
+                    if (state.title.position === 'center') ty = canvas.height * 0.5;
+                    else if (state.title.position === 'bottom') ty = canvas.height * 0.85;
+                    const tx = canvas.width / 2;
+                    ctx.fillStyle = '#000'; ctx.fillText(txt, tx + 3, ty + 3);
+                    ctx.fillStyle = state.title.color;
+                    if (state.title.style === 'neon') { ctx.shadowColor = state.title.color; ctx.shadowBlur = 20; ctx.fillText(txt, tx, ty); ctx.shadowBlur = 0; }
+                    else ctx.fillText(txt, tx, ty);
+                }
+            }
+
+            // Fade
+            let fo = 0;
+            if (state.fadeIn.enabled && videoTime < state.fadeIn.duration) fo = 1 - (videoTime / state.fadeIn.duration);
+            if (state.fadeOut.enabled) {
+                const fs = state.effectiveDuration - state.fadeOut.duration;
+                if (videoTime >= fs) fo = Math.max(fo, (videoTime - fs) / state.fadeOut.duration);
+            }
+            if (fo > 0) { ctx.fillStyle = `rgba(0,0,0,${fo})`; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+
+            // Progreso
+            if (state.effectiveDuration > 0) {
+                const p = (videoTime / state.effectiveDuration) * 100;
+                document.getElementById('exportProgressBar').style.width = Math.min(p, 100) + '%';
+                document.getElementById('exportProgressBar').textContent = Math.round(Math.min(p, 100)) + '%';
+                let st = `Grabando... ${Math.round(videoTime)}s / ${Math.round(state.effectiveDuration)}s`;
+                if (state.fadeOut.enabled && videoTime >= state.effectiveDuration - state.fadeOut.duration) st += ' [FADE OUT]';
+                document.getElementById('exportStatus').textContent = st;
             }
         }
-        setInterval(updateTimestamp, 500);
 
-        // ===== EXPORTAR CON CAPTURA AUTOMÁTICA DEL NAVEGADOR =====
+        // ================================================================
+        // ⭐ EXPORTACIÓN - CON AUDIO CORREGIDO
+        // ================================================================
         btnExport.addEventListener('click', async () => {
             if (!state.videoLoaded || state.isRecording) return;
-            if (state.effectiveDuration <= 0) {
-                alert('La duración de exportación es 0.');
-                return;
-            }
-
-            state.isRecording = true;
-            btnExport.disabled = true;
-            document.getElementById('exportProgress').style.display = 'block';
-            document.getElementById('recordingBanner').classList.add('active');
-            document.getElementById('exportStatus').textContent = 'Preparando grabación...';
-            
-            perfIndicator.classList.add('active');
-
-            const exportDuration = state.effectiveDuration;
-            const baseVolume = state.exportMuted ? 0 : (state.exportVolume / 100);
-            
-            let canvasWidth, canvasHeight;
-            const targetWidth = state.quality.width;
-            const targetHeight = state.quality.height;
-            
-            if (state.isPortrait) {
-                canvasHeight = targetWidth;
-                canvasWidth = Math.round(canvasHeight * state.videoAspect);
-            } else {
-                canvasWidth = targetWidth;
-                canvasHeight = Math.round(canvasWidth / state.videoAspect);
-            }
-            
-            canvasWidth = Math.floor(canvasWidth / 2) * 2;
-            canvasHeight = Math.floor(canvasHeight / 2) * 2;
-            
-            const targetFps = state.quality.fps;
-            const targetBitrate = state.quality.bitrate;
-            
-            console.log('Canvas:', canvasWidth + 'x' + canvasHeight, '@' + targetFps + 'fps');
-
-            state.performance.performanceMode = false;
-            state.performance.currentFps = 0;
-            state.performance.frameDrops = 0;
-            state.performance.heavyMode = false;
+            if (state.effectiveDuration <= 0) { alert('La duración es 0.'); return; }
 
             try {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d', { alpha: false });
-                canvas.width = canvasWidth;
-                canvas.height = canvasHeight;
+                state.isRecording = true;
+                btnExport.disabled = true;
+                document.getElementById('exportProgress').style.display = 'block';
+                document.getElementById('recordingBanner').classList.add('active');
+                document.getElementById('exportStatus').textContent = 'Preparando...';
+                perfIndicator.classList.add('active');
+                framesRendered = 0;
 
-                // CLAVE: captureStream con FPS específico para sincronización automática
-                const canvasStream = canvas.captureStream(targetFps);
+                const exportDuration = state.effectiveDuration;
+                const baseVolume = state.exportMuted ? 0 : (state.exportVolume / 100);
                 
-                let audioCtx = null;
-                let gainNode = null;
-                let sourceNode = null;
-                
+                // Calcular dimensiones
+                let cw, ch;
+                if (state.isPortrait) {
+                    ch = state.quality.width;
+                    cw = Math.round(ch * state.videoAspect);
+                } else {
+                    cw = state.quality.width;
+                    ch = Math.round(cw / state.videoAspect);
+                }
+                cw = Math.floor(cw / 2) * 2;
+                ch = Math.floor(ch / 2) * 2;
+
+                console.log('🎬 Canvas:', cw + 'x' + ch, '@' + state.quality.fps + 'fps');
+
+                // Crear canvas
+                exportCanvas = document.createElement('canvas');
+                exportCanvas.width = cw;
+                exportCanvas.height = ch;
+                exportCtx = exportCanvas.getContext('2d');
+
+                // ⭐ CAPTURA AUTOMÁTICA con FPS específico (sincroniza audio/video)
+                const canvasStream = exportCanvas.captureStream(state.quality.fps);
+                console.log('✅ Stream creado con', state.quality.fps, 'fps');
+                console.log('   Video tracks:', canvasStream.getVideoTracks().length);
+
+                // ⭐ CONFIGURAR AUDIO - CON TODAS LAS CORRECCIONES
                 try {
-                    audioCtx = new AudioContext();
-                    sourceNode = audioCtx.createMediaElementSource(video);
+                    // 1. Crear AudioContext si no existe
+                    if (!audioCtx) {
+                        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        console.log('✅ AudioContext creado');
+                    }
+                    
+                    // 2. ⭐ CLAVE: RESUMIR AudioContext (requerido por navegadores)
+                    if (audioCtx.state === 'suspended') {
+                        await audioCtx.resume();
+                        console.log('✅ AudioContext resumido');
+                    }
+                    
+                    // 3. Crear destination para el stream
+                    audioDestination = audioCtx.createMediaStreamDestination();
+                    
+                    // 4. Crear gain node
                     gainNode = audioCtx.createGain();
-                    const destination = audioCtx.createMediaStreamDestination();
-                    
-                    sourceNode.connect(gainNode);
-                    gainNode.connect(destination);
-                    sourceNode.connect(audioCtx.destination);
-                    
                     gainNode.gain.value = baseVolume;
                     
-                    destination.stream.getAudioTracks().forEach(track => {
-                        canvasStream.addTrack(track);
-                    });
-                } catch (e) {
-                    console.warn('No se pudo capturar audio:', e);
-                }
-
-                const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp8') 
-                    ? 'video/webm;codecs=vp8' 
-                    : 'video/webm';
-                const recorder = new MediaRecorder(canvasStream, { 
-                    mimeType: mimeType,
-                    videoBitsPerSecond: targetBitrate
-                });
-                
-                const chunks = [];
-                recorder.ondataavailable = (e) => {
-                    if (e.data.size > 0) chunks.push(e.data);
-                };
-
-                recorder.onstop = () => {
-                    const blob = new Blob(chunks, { type: 'video/webm' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    const startLabel = Math.round(state.exportStartTime);
-                    const durationLabel = Math.round(exportDuration);
-                    a.download = `vhs_export_${startLabel}s-${durationLabel}s_${Date.now()}.webm`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-
-                    if (gainNode) {
-                        gainNode.gain.value = 1;
+                    // 5. ⭐ CLAVE: Solo crear sourceNode UNA VEZ por video
+                    if (!videoSourceCreated) {
+                        sourceNode = audioCtx.createMediaElementSource(video);
+                        videoSourceCreated = true;
+                        console.log('✅ sourceNode creado (primera vez)');
+                    } else {
+                        console.log('✅ sourceNode reutilizado');
                     }
-
-                    state.isRecording = false;
-                    btnExport.disabled = false;
-                    document.getElementById('recordingBanner').classList.remove('active');
-                    perfIndicator.classList.remove('active');
-                    document.getElementById('exportStatus').textContent = 
-                        `¡Exportación completada! (FPS promedio: ${Math.round(state.performance.currentFps)})`;
-                    document.getElementById('exportProgressBar').style.width = '100%';
-                    document.getElementById('exportProgressBar').textContent = '100%';
-                };
-
-                const activeEffectsCount = Object.values(state.effects).filter(v => v).length;
-                const heavyModeThreshold = isMobile ? 3 : 5;
-                state.performance.heavyMode = activeEffectsCount > heavyModeThreshold;
-                
-                let noiseImageData = null;
-                if (state.effects.noise) {
-                    noiseImageData = ctx.createImageData(canvasWidth, canvasHeight);
-                }
-                
-                let lastFrameTimestamp = 0;
-                let fpsHistory = [];
-                let fpsUpdateCounter = 0;
-
-                function drawFrame(timestamp) {
-                    if (!state.isRecording) return;
                     
-                    // Medición de FPS
-                    if (lastFrameTimestamp > 0) {
-                        const deltaMs = timestamp - lastFrameTimestamp;
-                        const instantFps = 1000 / deltaMs;
-                        fpsHistory.push(instantFps);
-                        if (fpsHistory.length > 30) fpsHistory.shift();
+                    // 6. Conectar: source → gain → destination (grabación)
+                    //                   → audioCtx.destination (preview)
+                    sourceNode.connect(gainNode);
+                    gainNode.connect(audioDestination);
+                    
+                    // ⭐ CLAVE: También conectar a los parlantes para preview
+                    try {
+                        sourceNode.connect(audioCtx.destination);
+                    } catch(e) {
+                        console.log('Ya estaba conectado a destination');
+                    }
+                    
+                    console.log('✅ Audio conectado, gain:', baseVolume);
+                    
+                    // ⭐ VERIFICAR que el destination tiene audio tracks
+                    const audioTracks = audioDestination.stream.getAudioTracks();
+                    console.log('✅ Audio tracks en destination:', audioTracks.length);
+                    
+                    if (audioTracks.length === 0) {
+                        throw new Error('No se pudieron obtener tracks de audio');
+                    }
+                    
+                    // 7. ⭐ COMBINAR streams (video + audio)
+                    const combinedStream = new MediaStream([
+                        ...canvasStream.getVideoTracks(),
+                        ...audioTracks
+                    ]);
+                    
+                    console.log('✅ Stream combinado:', combinedStream.getTracks().length, 'tracks');
+                    console.log('   Video:', combinedStream.getVideoTracks().length);
+                    console.log('   Audio:', combinedStream.getAudioTracks().length);
+
+                    // 8. Detectar formato
+                    const mimes = ['video/mp4;codecs=h264', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
+                    let mime = '';
+                    for (let t of mimes) if (MediaRecorder.isTypeSupported(t)) { mime = t; break; }
+                    if (!mime) { alert('Navegador no soporta grabación'); stopExport(); return; }
+                    console.log('✅ Formato:', mime);
+
+                    // 9. MediaRecorder
+                    mediaRecorder = new MediaRecorder(combinedStream, { 
+                        mimeType: mime,
+                        videoBitsPerSecond: state.quality.bitrate
+                    });
+                    recordedChunks = [];
+                    mediaRecorder.ondataavailable = (e) => { 
+                        if (e.data.size > 0) recordedChunks.push(e.data); 
+                    };
+                    mediaRecorder.onstop = () => {
+                        console.log('✅ Grabación detenida, chunks:', recordedChunks.length);
+                        const blob = new Blob(recordedChunks, { type: mime });
+                        console.log('✅ Blob size:', blob.size, 'bytes');
+                        const ext = mime.includes('mp4') ? 'mp4' : 'webm';
+                        const fn = `vhs_export_${Math.round(state.exportStartTime)}s-${Math.round(exportDuration)}s_${Date.now()}.${ext}`;
+                        const file = new File([blob], fn, { type: mime });
                         
-                        fpsUpdateCounter++;
-                        if (fpsUpdateCounter >= 10) {
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            navigator.share({ files: [file], title: 'VHS Effects Studio' }).catch(() => downloadBlob(blob, fn));
+                        } else {
+                            downloadBlob(blob, fn);
+                        }
+                        document.getElementById('exportStatus').textContent = `✅ Completado! (${framesRendered} frames)`;
+                        stopExport();
+                    };
+
+                    // 10. Iniciar grabación con timeslice de 1 segundo
+                    mediaRecorder.start(1000);
+                    console.log('✅ MediaRecorder iniciado');
+
+                    // 11. Preparar video
+                    video.currentTime = state.exportStartTime;
+                    video.onseeked = () => {
+                        console.log('✅ Video en posición:', video.currentTime);
+                        video.play().then(() => {
+                            console.log('✅ Video reproduciéndose');
+                            exportIsPlaying = true;
+                            lastFrameTimestamp = 0;
+                            fpsHistory = [];
                             fpsUpdateCounter = 0;
-                            const avgFps = fpsHistory.reduce((a, b) => a + b, 0) / fpsHistory.length;
-                            state.performance.currentFps = avgFps;
-                            perfFps.textContent = Math.round(avgFps);
+                            requestAnimationFrame(drawExportFrame);
                             
-                            perfIndicator.classList.remove('warning', 'critical');
-                            if (avgFps < targetFps * 0.6) {
-                                perfIndicator.classList.add('critical');
-                            } else if (avgFps < targetFps * 0.85) {
-                                perfIndicator.classList.add('warning');
-                            }
-                            
-                            if (avgFps < targetFps * 0.7 && !state.performance.performanceMode) {
-                                state.performance.performanceMode = true;
-                                perfModeBadge.classList.add('active');
-                            }
-                        }
-                    }
-                    lastFrameTimestamp = timestamp;
-                    
-                    const videoTime = video.currentTime - state.exportStartTime;
-                    
-                    if (videoTime >= exportDuration || video.ended) {
-                        recorder.stop();
-                        video.pause();
-                        return;
-                    }
-                    
-                    const intensity = state.intensity / 100;
-                    const usePerformanceMode = state.performance.performanceMode || state.performance.heavyMode;
+                            autoStopTimeout = setTimeout(() => {
+                                console.log('⏹ Deteniendo grabación...');
+                                if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+                                video.pause();
+                                exportIsPlaying = false;
+                            }, exportDuration * 1000);
+                        }).catch(err => {
+                            console.error('❌ Error play:', err);
+                            alert('Error al reproducir: ' + err.message);
+                            stopExport();
+                        });
+                    };
 
-                    let fadeOpacity = 0;
-                    if (state.fadeIn.enabled && videoTime < state.fadeIn.duration) {
-                        fadeOpacity = 1 - (videoTime / state.fadeIn.duration);
-                    }
-                    if (state.fadeOut.enabled) {
-                        const fadeOutStart = exportDuration - state.fadeOut.duration;
-                        if (videoTime >= fadeOutStart) {
-                            const fadeOutProgress = (videoTime - fadeOutStart) / state.fadeOut.duration;
-                            fadeOpacity = Math.max(fadeOpacity, fadeOutProgress);
-                        }
-                    }
-
-                    if (gainNode) {
-                        let audioGain = baseVolume;
-                        if (state.fadeIn.enabled && videoTime < state.fadeIn.duration) {
-                            audioGain = baseVolume * (videoTime / state.fadeIn.duration);
-                        }
-                        if (state.fadeOut.enabled) {
-                            const fadeOutStart = exportDuration - state.fadeOut.duration;
-                            if (videoTime >= fadeOutStart) {
-                                audioGain = baseVolume * (1 - (videoTime - fadeOutStart) / state.fadeOut.duration);
-                            }
-                        }
-                        gainNode.gain.value = Math.max(0, audioGain);
-                    }
-
-                    // Aplicar filtros de color
-                    let canvasFilters = [];
-                    if (state.effects.sepia) {
-                        canvasFilters.push(`sepia(${0.85 * intensity}) saturate(${1 - 0.4 * intensity}) contrast(${1 + 0.15 * intensity}) brightness(${1 - 0.1 * intensity})`);
-                    }
-                    if (state.effects.colorfade) {
-                        canvasFilters.push(`saturate(${1 - 0.5 * intensity}) sepia(${0.3 * intensity}) contrast(${1 + 0.1 * intensity})`);
-                    }
-                    
-                    ctx.filter = canvasFilters.length > 0 ? canvasFilters.join(' ') : 'none';
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    ctx.filter = 'none';
-
-                    // Efectos de overlay
-                    if (state.effects.scanlines) {
-                        const scanlineStep = usePerformanceMode ? 6 : 4;
-                        const scanlineHeight = usePerformanceMode ? 1 : 2;
-                        ctx.fillStyle = `rgba(0, 0, 0, ${0.2 * intensity})`;
-                        for (let y = 0; y < canvas.height; y += scanlineStep) {
-                            ctx.fillRect(0, y, canvas.width, scanlineHeight);
-                        }
-                    }
-
-                    if (state.effects.noise && noiseImageData) {
-                        const shouldUpdate = !usePerformanceMode || (fpsUpdateCounter % 4 === 0);
-                        if (shouldUpdate) {
-                            const data = noiseImageData.data;
-                            const noiseAmount = intensity * 40;
-                            const step = usePerformanceMode ? 200 : 60;
-                            for (let i = 0; i < data.length; i += step * 4) {
-                                const noise = (Math.random() - 0.5) * noiseAmount;
-                                data[i] = 128 + noise;
-                                data[i + 1] = 128 + noise;
-                                data[i + 2] = 128 + noise;
-                                data[i + 3] = 60;
-                            }
-                        }
-                        ctx.putImageData(noiseImageData, 0, 0);
-                    }
-
-                    if (state.effects.vignette) {
-                        const gradient = ctx.createRadialGradient(
-                            canvas.width / 2, canvas.height / 2, canvas.width * 0.3,
-                            canvas.width / 2, canvas.height / 2, canvas.width * 0.7
-                        );
-                        gradient.addColorStop(0, 'rgba(0,0,0,0)');
-                        gradient.addColorStop(1, `rgba(0,0,0,${0.8 * intensity})`);
-                        ctx.fillStyle = gradient;
-                        ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    }
-
-                    if (state.effects.trackingshake) {
-                        const barHeight = 60;
-                        const shakeY = (Math.random() - 0.5) * 5 * intensity;
-                        const scaleY = 1 + (Math.random() - 0.5) * 0.1 * intensity;
-                        const gradient = ctx.createLinearGradient(0, canvas.height - barHeight + shakeY, 0, canvas.height + shakeY);
-                        gradient.addColorStop(0, `rgba(255, 255, 255, ${0.9 * intensity})`);
-                        gradient.addColorStop(0.25, `rgba(0, 0, 0, ${0.9 * intensity})`);
-                        gradient.addColorStop(0.5, `rgba(255, 255, 255, ${0.7 * intensity})`);
-                        gradient.addColorStop(0.75, `rgba(0, 0, 0, ${0.8 * intensity})`);
-                        gradient.addColorStop(1, `rgba(255, 255, 255, ${0.85 * intensity})`);
-                        ctx.save();
-                        ctx.translate(0, shakeY);
-                        ctx.scale(1, scaleY);
-                        ctx.fillStyle = gradient;
-                        ctx.fillRect(0, canvas.height - barHeight, canvas.width, barHeight);
-                        ctx.restore();
-                    }
-
-                    if (state.effects.rollingbar) {
-                        const barHeight = 80;
-                        const cycleTime = 8000;
-                        const cycleCurrentTime = Date.now() % cycleTime;
-                        const barY = (cycleCurrentTime / cycleTime) * (canvas.height + barHeight) - barHeight;
-                        const gradient = ctx.createLinearGradient(0, barY, 0, barY + barHeight);
-                        gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
-                        gradient.addColorStop(0.2, `rgba(255, 255, 255, ${0.3 * intensity})`);
-                        gradient.addColorStop(0.4, `rgba(0, 0, 0, ${0.6 * intensity})`);
-                        gradient.addColorStop(0.6, `rgba(255, 255, 255, ${0.4 * intensity})`);
-                        gradient.addColorStop(0.8, `rgba(0, 0, 0, ${0.5 * intensity})`);
-                        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                        ctx.fillStyle = gradient;
-                        ctx.fillRect(0, barY, canvas.width, barHeight);
-                    }
-
-                    if (state.effects.chromatic) {
-                        if (usePerformanceMode) {
-                            ctx.globalCompositeOperation = 'screen';
-                            ctx.fillStyle = `rgba(255, 0, 0, ${0.1 * intensity})`;
-                            ctx.fillRect(-2, 0, canvas.width, canvas.height);
-                            ctx.fillStyle = `rgba(0, 255, 255, ${0.1 * intensity})`;
-                            ctx.fillRect(2, 0, canvas.width, canvas.height);
-                            ctx.globalCompositeOperation = 'source-over';
-                        } else {
-                            const offset = Math.round(intensity * 3);
-                            ctx.globalCompositeOperation = 'screen';
-                            ctx.fillStyle = `rgba(255, 0, 0, ${0.15 * intensity})`;
-                            ctx.fillRect(-offset, 0, canvas.width, canvas.height);
-                            ctx.fillStyle = `rgba(0, 255, 255, ${0.15 * intensity})`;
-                            ctx.fillRect(offset, 0, canvas.width, canvas.height);
-                            ctx.globalCompositeOperation = 'source-over';
-                        }
-                    }
-
-                    if (state.effects.timestamp) {
-                        const time = video.currentTime;
-                        const hrs = Math.floor(time / 3600).toString().padStart(2, '0');
-                        const mins = Math.floor((time % 3600) / 60).toString().padStart(2, '0');
-                        const secs = Math.floor(time % 60).toString().padStart(2, '0');
-                        ctx.font = `bold ${Math.round(canvas.width * 0.03)}px Courier New`;
-                        ctx.fillStyle = '#fff';
-                        ctx.strokeStyle = '#000';
-                        ctx.lineWidth = 3;
-                        const text = `PLAY  ${hrs}:${mins}:${secs}`;
-                        const textWidth = ctx.measureText(text).width;
-                        ctx.strokeText(text, canvas.width - textWidth - 30, canvas.height - 30);
-                        ctx.fillText(text, canvas.width - textWidth - 30, canvas.height - 30);
-                    }
-
-                    if (state.effects.rec) {
-                        ctx.font = `bold ${Math.round(canvas.width * 0.025)}px Courier New`;
-                        ctx.fillStyle = Math.floor(Date.now() / 500) % 2 ? '#ff0000' : '#aa0000';
-                        ctx.strokeStyle = '#000';
-                        ctx.lineWidth = 3;
-                        ctx.strokeText('● REC', 30, 50);
-                        ctx.fillText('● REC', 30, 50);
-                    }
-
-                    if (state.title.enabled && state.title.text.trim()) {
-                        let showTitle = false;
-                        if (state.title.mode === 'intro') {
-                            if (videoTime >= 0 && videoTime < state.title.duration) showTitle = true;
-                        } else {
-                            showTitle = true;
-                        }
-                        
-                        if (showTitle) {
-                            const sizeMap = {
-                                'small': canvas.width * 0.03,
-                                'medium': canvas.width * 0.05,
-                                'large': canvas.width * 0.07,
-                                'xlarge': canvas.width * 0.1
-                            };
-                            const fontSize = sizeMap[state.title.size];
-                            let fontFamily = 'Courier New';
-                            let fontStyle = 'bold';
-                            let textTransform = 'none';
-                            switch(state.title.style) {
-                                case 'classic': fontFamily = 'Courier New'; fontStyle = 'bold'; textTransform = 'uppercase'; break;
-                                case 'neon': fontFamily = 'Arial Black'; fontStyle = '900'; textTransform = 'uppercase'; break;
-                                case 'retro': fontFamily = 'Impact'; fontStyle = 'bold'; textTransform = 'uppercase'; break;
-                                case 'vintage': fontFamily = 'Georgia'; fontStyle = 'bold italic'; break;
-                                case 'modern': fontFamily = 'Arial'; fontStyle = '300'; break;
-                                case 'glitch': fontFamily = 'Courier New'; fontStyle = 'bold'; textTransform = 'uppercase'; break;
-                            }
-                            let titleText = state.title.text;
-                            if (textTransform === 'uppercase') titleText = titleText.toUpperCase();
-                            ctx.font = `${fontStyle} ${fontSize}px ${fontFamily}`;
-                            ctx.textAlign = 'center';
-                            ctx.textBaseline = 'middle';
-                            let titleY = canvas.height * 0.15;
-                            if (state.title.position === 'center') titleY = canvas.height * 0.5;
-                            else if (state.title.position === 'bottom') titleY = canvas.height * 0.85;
-                            const titleX = canvas.width / 2;
-                            ctx.fillStyle = '#000';
-                            ctx.fillText(titleText, titleX + 3, titleY + 3);
-                            ctx.fillStyle = state.title.color;
-                            if (state.title.style === 'neon') {
-                                ctx.shadowColor = state.title.color;
-                                ctx.shadowBlur = 20;
-                                ctx.fillText(titleText, titleX, titleY);
-                                ctx.shadowBlur = 0;
-                            } else if (state.title.style === 'glitch') {
-                                const offset = (Math.random() - 0.5) * 4;
-                                ctx.fillStyle = '#ff0000';
-                                ctx.fillText(titleText, titleX + offset, titleY);
-                                ctx.fillStyle = '#00ffff';
-                                ctx.fillText(titleText, titleX - offset, titleY);
-                                ctx.fillStyle = state.title.color;
-                                ctx.fillText(titleText, titleX, titleY);
-                            } else {
-                                ctx.fillText(titleText, titleX, titleY);
-                            }
-                        }
-                    }
-
-                    if (fadeOpacity > 0) {
-                        ctx.fillStyle = `rgba(0, 0, 0, ${fadeOpacity})`;
-                        ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    }
-
-                    if (exportDuration > 0) {
-                        const progress = (videoTime / exportDuration) * 100;
-                        document.getElementById('exportProgressBar').style.width = Math.min(progress, 100) + '%';
-                        document.getElementById('exportProgressBar').textContent = Math.round(Math.min(progress, 100)) + '%';
-                        let statusText = `Grabando... ${Math.round(videoTime)}s / ${Math.round(exportDuration)}s`;
-                        if (state.fadeOut.enabled && videoTime >= exportDuration - state.fadeOut.duration) {
-                            statusText += ' [FADE OUT]';
-                        }
-                        if (state.performance.performanceMode) {
-                            statusText += ' ⚡';
-                        }
-                        document.getElementById('exportStatus').textContent = statusText;
-                    }
-
-                    requestAnimationFrame(drawFrame);
+                } catch (e) {
+                    console.error('❌ Error audio:', e);
+                    alert('Error de audio: ' + e.message);
+                    stopExport();
                 }
-
-                recorder.start();
-                video.currentTime = state.exportStartTime;
-                
-                video.onseeked = () => {
-                    video.play().then(() => {
-                        requestAnimationFrame(drawFrame);
-                    }).catch(err => {
-                        console.error('Error al reproducir:', err);
-                        alert('Error al iniciar la reproducción');
-                        state.isRecording = false;
-                        btnExport.disabled = false;
-                        document.getElementById('recordingBanner').classList.remove('active');
-                        perfIndicator.classList.remove('active');
-                    });
-                };
 
             } catch (err) {
-                console.error('Error al exportar:', err);
-                alert('Error al exportar el video: ' + err.message);
-                state.isRecording = false;
-                btnExport.disabled = false;
-                document.getElementById('recordingBanner').classList.remove('active');
-                perfIndicator.classList.remove('active');
-                document.getElementById('exportStatus').textContent = 'Error en la exportación';
+                console.error('❌ Error exportación:', err);
+                alert('Error: ' + err.message);
+                stopExport();
             }
         });
+
+        function downloadBlob(blob, fn) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = fn;
+            document.body.appendChild(a); a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+
+        function stopExport() {
+            if (autoStopTimeout) { clearTimeout(autoStopTimeout); autoStopTimeout = null; }
+            if (exportAnimationId) { cancelAnimationFrame(exportAnimationId); exportAnimationId = null; }
+            exportIsPlaying = false;
+            state.isRecording = false;
+            btnExport.disabled = false;
+            document.getElementById('recordingBanner').classList.remove('active');
+            perfIndicator.classList.remove('active');
+            document.getElementById('exportProgressBar').style.width = '100%';
+            document.getElementById('exportProgressBar').textContent = '100%';
+            
+            // ⭐ LIMPIAR solo lo necesario, mantener audioCtx y sourceNode
+            if (audioDestination) audioDestination = null;
+            if (gainNode) gainNode = null;
+            
+            exportCanvas = null;
+            exportCtx = null;
+        }
 
         video.volume = 0.8;
         updateExportSummary();
-        
-        console.log('VHS Effects Studio iniciado');
-        console.log('Captura automática del navegador: captureStream(' + state.quality.fps + 'fps)');
+        console.log('🎬 VHS Effects Studio listo');
+        console.log('🔊 Audio: captureStream(' + state.quality.fps + 'fps) + AudioContext');
     </script>
 </body>
 </html>
