@@ -108,7 +108,7 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
 <body>
 <div class="app">
 <header class="hd">
-<div class="lg">🎬 VHS EFFECTS STUDIO</div>
+<div class="lg"> VHS EFFECTS STUDIO</div>
 <div class="st">
 <div class="si" id="ri" style="display:none"><div class="rd"></div><span>REC</span></div>
 <div class="si"><span id="fp">0 FPS</span></div>
@@ -197,7 +197,7 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
 </div>
 
 <div class="pn">
-<div class="pt">NAVEGACIÓN</div>
+<div class="pt">🎯 PUNTO DE INICIO Y RANGO</div>
 <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
 <button class="bt" data-s="-30">-30s</button>
 <button class="bt" data-s="-10">-10s</button>
@@ -206,10 +206,23 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
 <button class="bt" data-s="10">+10s</button>
 <button class="bt" data-s="30">+30s</button>
 </div>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px">
-<div class="ig"><label>Punto inicio (s)</label><input type="number" id="startT" value="0" min="0" step="0.1"></div>
-<div class="ig"><label>Aplicar desde (s)</label><input type="number" id="applyFrom" value="0" min="0" step="0.1"></div>
-<div class="ig"><label>Aplicar hasta (s)</label><input type="number" id="applyTo" value="0" min="0" step="0.1"></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px">
+<div class="ig">
+<label>📍 Punto de inicio (segundos del video original)</label>
+<input type="number" id="startPoint" value="0" min="0" step="0.1">
+</div>
+<div class="ig">
+<label>▶️ Aplicar efectos desde (segundos)</label>
+<input type="number" id="applyFrom" value="0" min="0" step="0.1">
+</div>
+<div class="ig">
+<label>⏹️ Aplicar efectos hasta (segundos)</label>
+<input type="number" id="applyTo" value="0" min="0" step="0.1">
+</div>
+</div>
+<div style="margin-top:8px;padding:8px;background:var(--bg3);border-radius:var(--r);font-size:11px;color:var(--tx2)">
+<div>📊 Duración disponible: <span id="availDur" style="color:var(--ac);font-weight:bold">0s</span></div>
+<div>🎬 Duración a exportar: <span id="exportDurInfo" style="color:var(--ac);font-weight:bold">0s</span></div>
 </div>
 </div>
 </main>
@@ -218,7 +231,7 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
 <div class="pn">
 <div class="pt">CALIDAD</div>
 <div id="qOpts">
-<div class="qo" data-q="low"><div class="qt"> Baja</div><div class="qd">480p · 15fps</div></div>
+<div class="qo" data-q="low"><div class="qt">🟢 Baja</div><div class="qd">480p · 15fps</div></div>
 <div class="qo on" data-q="medium"><div class="qt">⭐ Media</div><div class="qd">720p · 24fps</div></div>
 <div class="qo" data-q="high"><div class="qt">🔵 Alta</div><div class="qd">1080p · 30fps</div></div>
 </div>
@@ -244,7 +257,7 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
 </div>
 
 <div class="pn">
-<div class="pt">DURACIÓN</div>
+<div class="pt">⏱️ DURACIÓN DE EXPORTACIÓN</div>
 <div class="dg" id="durGrid">
 <button class="db" data-d="15">15s<br><small>Estados</small></button>
 <button class="db" data-d="30">30s<br><small>Historias</small></button>
@@ -254,11 +267,11 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
 <button class="db" data-d="0">Completo<br><small>Sin corte</small></button>
 <button class="db" data-d="custom">Personalizado</button>
 </div>
-<div class="ig hdn" id="customDurGroup" style="margin-top:10px"><label>Duración (s)</label><input type="number" id="customDur" value="90" min="1"></div>
+<div class="ig hdn" id="customDurGroup" style="margin-top:10px"><label>Duración personalizada (s)</label><input type="number" id="customDur" value="90" min="1"></div>
 <div style="margin-top:10px;font-size:12px;color:var(--tx2)">
-<div>Original: <span id="origDur">--:--</span></div>
-<div>Exportar: <span id="expDur">--:--</span></div>
-<div style="margin-top:5px;font-size:11px">Formato: <span id="fmtInfo">--</span></div>
+<div>📹 Original: <span id="origDur">--:--</span></div>
+<div>📤 Exportar: <span id="expDur">--:--</span></div>
+<div style="margin-top:5px;font-size:11px"> Formato: <span id="fmtInfo">--</span></div>
 </div>
 </div>
 
@@ -284,7 +297,7 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
 const FX=[{id:'scanlines',n:'Scanlines'},{id:'noise',n:'Ruido'},{id:'tracking',n:'Tracking'},{id:'rolling',n:'Rolling'},{id:'aberration',n:'Aberración'},{id:'vignette',n:'Viñeta'},{id:'shake',n:'Temblor'},{id:'colorFade',n:'Desvanecido'},{id:'sepia',n:'Sepia'},{id:'glitch',n:'Glitch'},{id:'timestamp',n:'Timestamp'},{id:'rec',n:'REC'}];
 const PR={none:{},classic:{scanlines:1,noise:1,tracking:1,aberration:1,vignette:1,colorFade:1,timestamp:1,rec:1},intense:{scanlines:1,noise:1,tracking:1,rolling:1,aberration:1,vignette:1,shake:1,colorFade:1,glitch:1,timestamp:1,rec:1},horror:{scanlines:1,noise:1,tracking:1,rolling:1,aberration:1,vignette:1,shake:1,sepia:1,glitch:1,rec:1},ancient:{scanlines:1,noise:1,tracking:1,rolling:1,aberration:1,vignette:1,shake:1,colorFade:1,sepia:1,glitch:1,timestamp:1,rec:1},light:{scanlines:1,noise:1,vignette:1,colorFade:1}};
 const TS=['Clásico VHS','Neón','Retro','Vintage','Moderno','Glitch'];
-const S={fx:Object.fromEntries(FX.map(f=>[f.id,false])),int:0.5,preset:'none',tStyle:'Clásico VHS',tPos:'center',tSize:'medium',tColor:'#ffffff',introTxt:'',fixedTxt:'',introDur:3,quality:'medium',fadeIn:0.5,fadeOut:0.5,dur:90,durMode:'90',perf:false,startT:0,applyFrom:0,applyTo:0,videoAspect:16/9,isVertical:false};
+const S={fx:Object.fromEntries(FX.map(f=>[f.id,false])),int:0.5,preset:'none',tStyle:'Clásico VHS',tPos:'center',tSize:'medium',tColor:'#ffffff',introTxt:'',fixedTxt:'',introDur:3,quality:'medium',fadeIn:0.5,fadeOut:0.5,dur:90,durMode:'90',perf:false,startPoint:0,applyFrom:0,applyTo:0,videoAspect:16/9,isVertical:false};
 
 let vid=null,audioBuf=null,dur=0,playing=false,ac=null,clock={start:0,paused:0,playing:false,lat:0},exporting=false;
 const cv=document.getElementById('cv'),ctx2d=cv.getContext('2d');
@@ -485,8 +498,8 @@ async function loadVideo(file){
       }
       try{const ab=await file.arrayBuffer();const tmp=new(window.AudioContext||window.webkitAudioContext)();audioBuf=await tmp.decodeAudioData(ab);await tmp.close();}catch(e){console.warn('Sin audio');}
       document.getElementById('origDur').textContent=fmt(dur);
-      document.getElementById('expDur').textContent=fmt(Math.min(dur,S.dur||dur));
       document.getElementById('applyTo').value=dur;S.applyTo=dur;
+      updateDurationInfo();
       document.getElementById('uploadZone').classList.add('hd');
       ['playBtn','stopBtn','exportBtn'].forEach(id=>document.getElementById(id).disabled=false);
       res();
@@ -495,11 +508,17 @@ async function loadVideo(file){
   });
 }
 
+function updateDurationInfo(){
+  const startPoint=parseFloat(document.getElementById('startPoint').value)||0;
+  const durSelected=S.dur===0?dur:Math.min(S.dur,dur-startPoint);
+  const availDur=Math.max(0,dur-startPoint);
+  document.getElementById('availDur').textContent=fmt(availDur);
+  document.getElementById('exportDurInfo').textContent=fmt(durSelected);
+  document.getElementById('expDur').textContent=fmt(durSelected);
+}
+
 function delay(ms){return new Promise(r=>setTimeout(r,ms));}
 
-// ============================================
-// EXPORTACIÓN DETERMINISTA FRAME-A-FRAME
-// ============================================
 async function exportVideo(){
   if(exporting)return;
   exporting=true;
@@ -514,19 +533,17 @@ async function exportVideo(){
   pf.style.width='0%';
   pt.textContent='Preparando...';
   
-  // Configuración de calidad
   const q={
     low:{w:854,h:480,fps:15,br:1000000},
     medium:{w:1280,h:720,fps:24,br:2500000},
     high:{w:1920,h:1080,fps:30,br:5000000}
   }[S.quality];
   
-  const startT=parseFloat(document.getElementById('startT').value)||0;
-  const durExp=S.dur===0?dur-startT:Math.min(S.dur,dur-startT);
+  const startPoint=parseFloat(document.getElementById('startPoint').value)||0;
+  const durSelected=S.dur===0?dur-startPoint:Math.min(S.dur,dur-startPoint);
   
-  console.log(`[Export] startT=${startT}, durExp=${durExp}, fps=${q.fps}`);
+  console.log(`[Export] startPoint=${startPoint}, durSelected=${durSelected}, fps=${q.fps}`);
   
-  // Canvas de exportación
   const expCv=document.createElement('canvas');
   if(S.isVertical){expCv.width=720;expCv.height=1280;}
   else{expCv.width=q.w;expCv.height=q.h;}
@@ -539,10 +556,8 @@ async function exportVideo(){
     return;
   }
   
-  // Stream de video
   const videoStream=expCv.captureStream(q.fps);
   
-  // Audio sincronizado
   let audioTrack=null,exportSource=null;
   if(audioBuf){
     const audioDest=ac.createMediaStreamDestination();
@@ -597,14 +612,10 @@ async function exportVideo(){
     console.log('[Export] Finalizado');
   };
   
-  // Iniciar grabación
-  rec.start(100); // timeslice para chunks más frecuentes
+  rec.start(100);
   
-  // ============================================
-  // RENDERIZADO FRAME-A-FRAME CON TIMING PRECISO
-  // ============================================
-  const totalFrames=Math.ceil(durExp*q.fps);
-  const frameInterval=1000/q.fps; // ms por frame
+  const totalFrames=Math.ceil(durSelected*q.fps);
+  const frameInterval=1000/q.fps;
   
   console.log(`[Export] totalFrames=${totalFrames}, frameInterval=${frameInterval}ms`);
   
@@ -612,14 +623,9 @@ async function exportVideo(){
   let audioStarted=false;
   const exportStartTime=performance.now();
   
-  // Función para renderizar un frame
   const renderFrame=async(frameIndex)=>{
     if(frameIndex>=totalFrames){
-      // Terminar exportación
-      console.log(`[Export] Todos los frames renderizados: ${framesRendered}`);
-      if(exportSource&&!audioStarted){
-        exportSource.start(0,startT);
-      }
+      console.log(`[Export] Todos los frames: ${framesRendered}`);
       setTimeout(()=>{
         if(exportSource){try{exportSource.stop(0);}catch(e){}}
         rec.stop();
@@ -627,13 +633,12 @@ async function exportVideo(){
       return;
     }
     
-    const t=startT+(frameIndex/q.fps);
+    const t=startPoint+(frameIndex/q.fps);
     const fade=Math.max(0,Math.min(1,
-      t<S.fadeIn?t/S.fadeIn:
-      t>durExp-S.fadeOut?(durExp-t)/S.fadeOut:1
+      t<startPoint+S.fadeIn?(t-startPoint)/S.fadeIn:
+      t>startPoint+durSelected-S.fadeOut?(startPoint+durSelected-t)/S.fadeOut:1
     ));
     
-    // Esperar a que el video esté en el tiempo correcto
     await new Promise(resolve=>{
       const onSeeked=()=>{
         vid.removeEventListener('seeked',onSeeked);
@@ -643,41 +648,35 @@ async function exportVideo(){
       vid.currentTime=t;
     });
     
-    // Renderizar efectos
     applyFX(expRenderer,vid,t,fade,S.int);
     drawOverlays(expCtx,t,expCv.width,expCv.height);
     
-    // Iniciar audio en el primer frame
     if(!audioStarted&&exportSource){
-      exportSource.start(0,startT);
+      exportSource.start(0,startPoint);
       audioStarted=true;
-      console.log(`[Export] Audio iniciado en t=${startT}`);
+      console.log(`[Export] Audio iniciado en t=${startPoint}`);
     }
     
     framesRendered++;
     const elapsed=(performance.now()-exportStartTime)/1000;
     const pct=Math.round(framesRendered/totalFrames*100);
     pf.style.width=`${pct}%`;
-    pt.textContent=`${pct}% - ${fmt(elapsed)}/${fmt(durExp)} [${framesRendered}/${totalFrames}]`;
+    pt.textContent=`${pct}% - ${fmt(elapsed)}/${fmt(durSelected)} [${framesRendered}/${totalFrames}]`;
     
-    // Programar siguiente frame con compensación de tiempo
     const targetTime=exportStartTime+(frameIndex+1)*frameInterval;
     const now=performance.now();
-    const waitTime=Math.max(0,targetTime-now-5); // -5ms para compensar overhead
+    const waitTime=Math.max(0,targetTime-now-5);
     
     if(waitTime>0){
       setTimeout(()=>renderFrame(frameIndex+1),waitTime);
     }else{
-      // Si vamos retrasados, renderizar inmediatamente
       renderFrame(frameIndex+1);
     }
   };
   
-  // Iniciar renderizado
   renderFrame(0);
 }
 
-// UI Bindings
 document.getElementById('fileInput').onchange=e=>{if(e.target.files[0])loadVideo(e.target.files[0]);};
 document.getElementById('uploadZone').onclick=()=>document.getElementById('fileInput').click();
 document.getElementById('uploadZone').ondragover=e=>{e.preventDefault();document.getElementById('uploadZone').classList.add('dg');};
@@ -689,7 +688,7 @@ document.getElementById('volSlider').oninput=e=>{document.getElementById('volVal
 document.getElementById('intSlider').oninput=e=>{S.int=e.target.value/100;document.getElementById('iv').textContent=`${e.target.value}%`;};
 document.getElementById('perfBtn').onclick=()=>{S.perf=!S.perf;document.getElementById('perfBtn').classList.toggle('on',S.perf);if(vid){cv.width=S.perf?640:vid.videoWidth;cv.height=S.perf?360:vid.videoHeight;}};
 document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>seek(parseInt(b.dataset.s)));
-document.getElementById('startT').oninput=e=>S.startT=parseFloat(e.target.value)||0;
+document.getElementById('startPoint').oninput=e=>{S.startPoint=parseFloat(e.target.value)||0;updateDurationInfo();};
 document.getElementById('applyFrom').oninput=e=>S.applyFrom=parseFloat(e.target.value)||0;
 document.getElementById('applyTo').oninput=e=>S.applyTo=parseFloat(e.target.value)||0;
 
@@ -764,9 +763,9 @@ document.querySelectorAll('.db').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.db').forEach(x=>x.classList.remove('on'));
   b.classList.add('on');
   if(b.dataset.d==='custom'){document.getElementById('customDurGroup').classList.remove('hdn');S.durMode='custom';}
-  else{document.getElementById('customDurGroup').classList.add('hdn');S.durMode=b.dataset.d;S.dur=parseInt(b.dataset.d)||0;document.getElementById('expDur').textContent=fmt(S.dur===0?dur:Math.min(S.dur,dur));}
+  else{document.getElementById('customDurGroup').classList.add('hdn');S.durMode=b.dataset.d;S.dur=parseInt(b.dataset.d)||0;updateDurationInfo();}
 });
-document.getElementById('customDur').oninput=e=>{S.dur=parseInt(e.target.value)||90;document.getElementById('expDur').textContent=fmt(Math.min(S.dur,dur));};
+document.getElementById('customDur').oninput=e=>{S.dur=parseInt(e.target.value)||90;updateDurationInfo();};
 
 document.getElementById('exportBtn').onclick=exportVideo;
 document.getElementById('closeModal').onclick=()=>document.getElementById('modal').classList.remove('on');
